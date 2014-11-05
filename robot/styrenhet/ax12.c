@@ -32,8 +32,6 @@ char uart_getchar(void) {
 void PortInitialize(void) {
 	DDRA = DDRB = DDRC = DDRD = 0; //Sätt alla portar till input
 	PORTA = PORTB = PORTC = PORTD = 0; //Sätt portdata till 0
-
-	DDRD = 0x40; //Pin D1 output, resten input
 }
 
 //Initiera uart
