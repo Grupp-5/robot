@@ -7,11 +7,13 @@
 
 
 #include <avr/io.h>
+#include "styrenhet/ax12.h"
 
 int main(void)
 {
+	uart_init();
     while(1)
     {
-        //TODO:: Please write your application code 
+		PingAX(3);
     }
 }
