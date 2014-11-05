@@ -15,6 +15,16 @@
     <AssemblyName>styrenhet</AssemblyName>
     <Name>styrenhet</Name>
     <RootNamespace>styrenhet</RootNamespace>
+    <ToolchainFlavour>Native</ToolchainFlavour>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <CacheFlash>true</CacheFlash>
+    <ProgFlashFromRam>true</ProgFlashFromRam>
+    <RamSnippetAddress />
+    <UncachedRange />
+    <OverrideVtorValue />
+    <BootSegment>2</BootSegment>
+    <eraseonlaunchrule>1</eraseonlaunchrule>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -25,6 +35,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ax12.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ax12.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="styrenhet.c">
       <SubType>compile</SubType>
     </Compile>

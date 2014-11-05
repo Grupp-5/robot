@@ -27,15 +27,15 @@
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <AsfFrameworkConfig>
       <framework-data>
-  <options />
-  <configurations />
-  <files />
-  <documentation help="" />
-  <offline-documentation help="" />
-  <dependencies>
-    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.11.0" />
-  </dependencies>
-</framework-data>
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.11.0" />
+        </dependencies>
+      </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.simulator</avrtool>
     <com_atmel_avrdbg_tool_simulator>
@@ -109,18 +109,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="styrenhet\ax12.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="styrenhet\ax12.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="styrenhet\styrenhet.c">
+    <Compile Include="kommunikationsenhet\Comunication.c">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="styrenhet\" />
+    <Folder Include="kommunikationsenhet" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>
