@@ -7,7 +7,7 @@
 #include "constants.c"
 
 
-void uart_putchar(char c){
+void uart_putchar(char c) {
 	loop_until_bit_is_set(UCSR0A, UDRE0); //Vänta tills dataregistret är tomt, RÄTT REGISTER???
 	UDR0 = c;
 }
@@ -17,7 +17,7 @@ char uart_getchar(void) {
     return UDR0;
 }
 
-void PortInitialize(void){
+void PortInitialize(void) {
 	DDRA = DDRB = DDRC = DDRD = 0; //Sätt alla portar till input
 	PORTA = PORTB = PORTC = PORTD = 0; //Sätt portdata till 0
 
@@ -26,7 +26,7 @@ void PortInitialize(void){
 
 // Funktioner för att skicka och ta emot paket
 
-void PushHeaderAX(byte id, byte len, byte inst){
+void PushHeaderAX(byte id, byte len, byte inst) {
 	//Pusha information till uart
 	//FF
 	//FF
@@ -37,14 +37,14 @@ void PushHeaderAX(byte id, byte len, byte inst){
 	//PARAM2
 }
 
-void PushFooterAX(){
+void PushFooterAX() {
 	//CHECKSUM
 }
 
 
 // Instruktioner
 
-void PingAX(byte id){
+void PingAX(byte id) {
 	//skicka header
 	//skicka footer
 }
