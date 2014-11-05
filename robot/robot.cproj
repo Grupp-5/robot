@@ -109,13 +109,13 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="robot.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="styrenhet\ax12.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="styrenhet\ax12.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="styrenhet\styrenhet.c">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

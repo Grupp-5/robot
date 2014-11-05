@@ -78,4 +78,11 @@ typedef unsigned char byte;
 void PingAX(byte id);
 void uart_init (void);
 
-
+typedef struct {
+	char id;
+	char error;
+	char length;
+	// TODO: 5??
+	char params[5];
+	char checksum;
+} ResponsePacket;

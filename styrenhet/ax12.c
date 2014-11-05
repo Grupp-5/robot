@@ -20,14 +20,14 @@ void uart_init() {
 
 
 void uart_putchar(char c) {
-	loop_until_bit_is_set(UCSR0A, UDRE0); //Vänta tills dataregistret är tomt, RÄTT REGISTER???
+	loop_until_bit_is_set(UCSR0A, UDRE0); //Vänta tills dataregistret är tomt.
 	UDR0 = c;
 	checksum += c;
 }
 
 char uart_getchar() {
-    loop_until_bit_is_set(UCSR0A, RXC0); /* Vänta tills data existerar, RÄTT REGISTER???. */
-    return UDR0;
+	loop_until_bit_is_set(UCSR0A, RXC0); /* Vänta tills data existerar. */
+	return UDR0;
 }
 
 void PortInitialize() {
@@ -54,10 +54,35 @@ void PushFooterAX() {
 	uart_putchar(~checksum);
 }
 
+ ResponsePacket RecieveHeaderAX() {
+	/* 
+		Paketformat: 
+		0XFF 0XFF ID LENGTH ERROR PARAMETER1 PARAMETER2…PARAMETER N CHECKSUM
+	*/
+	// Ta emot 0xFF 0xFF
+	uart_getchar();
+	uart_getchar();
+
+	ResponsePacket res;
+	
+	res.id = uart_getchar();
+	res.error = uart_getchar();
+	res.length = uart_getchar();
+	
+	for (int i = 0; i < res.length - 2; i++) {
+		res.params[i] = uart_getchar();
+	}
+	res.checksum = uart_getchar();
+	
+	return res;
+}
 
 // Instruktioner
 
 void PingAX(byte id) {
 	PushHeaderAX(id, 2, INST_PING); //skicka header
 	PushFooterAX(); //skicka footer
+	
+	// Ta emot svar
+	ResponsePacket res = RecieveHeaderAX();
 }
