@@ -35,7 +35,7 @@ void USART_Init(void) {
 	UBRR1H = (BAUD_PRESCALE >> 8);//High register
 	UBRR1L = BAUD_PRESCALE;//Low register
 	
-	//Default frame format is 8 databits, no parity and 1 stop bit
+	//Default frame format is 8 data bits, no parity and 1 stop bit
 	
 	//Enable RX, TX
 	UCSR1B= ((1<<TXEN1)|(1<<RXEN1));	
@@ -63,8 +63,10 @@ int main(void) {
 		while(autoMode == 0) {
 			while((PIND & 0x02) == 1);//Wait for Firefly to want to send
 			cli();//Disable interrupts in status register
-			PIND = PIND | (1<<PINA4);//Ok to send
-			uint8_t data = USART_Receive_Byte();	
+			PIND = PIND & (~(1<<PINA4));//Ok to send
+			uint8_t data = USART_Receive_Byte();
+			PIND = PIND | (1<<PINA4);
+			sei();
 		}
 		
 		while(autoMode == 1);	
