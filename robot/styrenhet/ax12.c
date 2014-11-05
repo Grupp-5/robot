@@ -23,3 +23,28 @@ void PortInitialize(void){
 
 	DDRD = 0x40; //Pin D1 output, resten input
 }
+
+// Funktioner för att skicka och ta emot paket
+
+void PushHeaderAX(byte id, byte len, byte inst){
+	//Pusha information till uart
+	//FF
+	//FF
+	//ID
+	//LENGTH
+	//INST
+	//PARAM1
+	//PARAM2
+}
+
+void PushFooterAX(){
+	//CHECKSUM
+}
+
+
+// Instruktioner
+
+void PingAX(byte id){
+	//skicka header
+	//skicka footer
+}
