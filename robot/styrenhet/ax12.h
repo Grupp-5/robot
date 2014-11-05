@@ -75,6 +75,7 @@ typedef unsigned char byte;
 //Hardware Dependent Item 
 #define DEFAULT_BAUD_RATE 34 //57600bps at 16MHz
 
-
+void PingAX(byte id);
+void uart_init (void);
 
 

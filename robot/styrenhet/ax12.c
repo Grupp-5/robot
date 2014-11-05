@@ -4,6 +4,7 @@
 * Author : Daniel
 */
 
+#include <avr/io.h>
 #include "ax12.h"
 
 //Globala variabler
@@ -11,10 +12,10 @@ byte checksum;
 
 //Initiera uart
 void uart_init (void) {
-	UBRRH = (DEFAULT_BAUD_RATE>>8); //Skifta registret höger 8 bitar
-	UBRRL = DEFAULT_BAUD_RATE; //Sätt baud rate
-	UCSRB|= (1<<TXEN)|(1<<RXEN); //Aktivera sändare och mottagare
-	UCSRC|= (1<<URSEL)|(1<<UCSZ0)|(1<<UCSZ1); //Sätt til 8bits instruktioner
+	UBRR0H = (DEFAULT_BAUD_RATE>>8); //Skifta registret höger 8 bitar
+	UBRR0L = DEFAULT_BAUD_RATE; //Sätt baud rate
+	UCSR0B|= (1<<TXEN0)|(1<<RXEN0); //Aktivera sändare och mottagare
+	UCSR0C|= (1<<UCSZ00)|(1<<UCSZ01); //Sätt til 8bits instruktioner
 }
 
 
@@ -34,14 +35,6 @@ void PortInitialize(void) {
 	PORTA = PORTB = PORTC = PORTD = 0; //Sätt portdata till 0
 
 	DDRD = 0x40; //Pin D1 output, resten input
-}
-
-//Initiera uart
-void uart_init (void) {
-	UBRRH = (DEFAULT_BAUD_RATE>>8); //Skifta registret höger 8 bitar
-	UBRRL = DEFAULT_BAUD_RATE; //Sätt baud rate
-	UCSRB|= (1<<TXEN)|(1<<RXEN); //Aktivera sändare och mottagare
-	UCSRC|= (1<<URSEL)|(1<<UCSZ0)|(1<<UCSZ1); //Sätt til 8bits instruktioner
 }
 
 // Funktioner för att skicka och ta emot paket
@@ -67,6 +60,6 @@ void PushFooterAX() {
 // Instruktioner
 
 void PingAX(byte id) {
-	PushHeaderAX(id, 2, AX_INST_PING); //skicka header
+	PushHeaderAX(id, 2, INST_PING); //skicka header
 	PushFooterAX(); //skicka footer
 }
