@@ -11,7 +11,7 @@
 byte checksum;
 
 //Initiera uart
-void uart_init (void) {
+void uart_init() {
 	UBRR0H = (DEFAULT_BAUD_RATE>>8); //Skifta registret höger 8 bitar
 	UBRR0L = DEFAULT_BAUD_RATE; //Sätt baud rate
 	UCSR0B|= (1<<TXEN0)|(1<<RXEN0); //Aktivera sändare och mottagare
@@ -25,12 +25,12 @@ void uart_putchar(char c) {
 	checksum += c;
 }
 
-char uart_getchar(void) {
+char uart_getchar() {
     loop_until_bit_is_set(UCSR0A, RXC0); /* Vänta tills data existerar, RÄTT REGISTER???. */
     return UDR0;
 }
 
-void PortInitialize(void) {
+void PortInitialize() {
 	DDRA = DDRB = DDRC = DDRD = 0; //Sätt alla portar till input
 	PORTA = PORTB = PORTC = PORTD = 0; //Sätt portdata till 0
 }
