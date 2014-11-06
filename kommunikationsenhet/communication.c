@@ -1,9 +1,9 @@
 /*
- * Comunication.c
- *
- * Created: 2014-11-04 10:15:58
- *  Author: erima694 & eribo740
- */ 
+* Comunication.c
+*
+* Created: 2014-11-04 10:15:58
+*  Author: erima694 & eribo740
+*/
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -24,7 +24,7 @@ ISR(PCINT0_vect) {
 	if((PINA & 0x01) == 0) {
 		if(autoMode == 0) {
 			autoMode = 1;
-		}else {
+		} else {
 			autoMode = 0;
 		}
 	}
@@ -38,7 +38,7 @@ void USART_Init(void) {
 	//Default frame format is 8 data bits, no parity and 1 stop bit
 	
 	//Enable RX, TX
-	UCSR1B= ((1<<TXEN1)|(1<<RXEN1));	
+	UCSR1B = ((1<<TXEN1)|(1<<RXEN1));
 }
 
 uint8_t USART_Receive_Byte(void) {
@@ -59,7 +59,7 @@ int main(void) {
 	USART_Init();
 	sei();//Enable interrupts in status register
 	
-    while(1) {
+	while(1) {
 		while(autoMode == 0) {
 			while((PIND & 0x02) == 1);//Wait for Firefly to want to send
 			cli();//Disable interrupts in status register
@@ -69,6 +69,6 @@ int main(void) {
 			sei();
 		}
 		
-		while(autoMode == 1);	
-    }
+		while(autoMode == 1);
+	}
 }
