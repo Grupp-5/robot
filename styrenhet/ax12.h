@@ -73,7 +73,15 @@ typedef unsigned char byte;
 #define INST_SYNC_REG_WRITE 0x84
 
 //Hardware Dependent Item 
-#define DEFAULT_BAUD_RATE 34 //57600bps at 16MHz
+// Default är 1000000bps på AX-12
+
+#ifndef F_CPU
+/* prevent compiler error by supplying a default */
+# warning "F_CPU not defined for ax12.h"
+# define F_CPU 8000000UL
+#endif
+
+#define DEFAULT_BAUD_RATE ((F_CPU) / (8*1000000)-1)//((F_CPU) / (8*100000)-1) //Ska bli 1,000,000 bps på F_CPU Mhz
 
 void PingAX(byte id);
 void uart_init (void);
