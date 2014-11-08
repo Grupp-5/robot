@@ -1,9 +1,9 @@
 /*
-* Comunication.c
-*
-* Created: 2014-11-04 10:15:58
-*  Author: erima694 & eribo740
-*/
+ * Comunication.c
+ *
+ * Created: 2014-11-04 10:15:58
+ *  Author: erima694 & eribo740
+ */ 
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -24,7 +24,7 @@ ISR(PCINT0_vect) {
 	if((PINA & 0x01) == 0) {
 		if(autoMode == 0) {
 			autoMode = 1;
-		} else {
+		}else {
 			autoMode = 0;
 		}
 	}
@@ -38,7 +38,7 @@ void USART_Init(void) {
 	//Default frame format is 8 data bits, no parity and 1 stop bit
 	
 	//Enable RX, TX
-	UCSR1B = ((1<<TXEN1)|(1<<RXEN1));
+	UCSR1B= ((1<<TXEN1)|(1<<RXEN1));	
 }
 
 uint8_t USART_Receive_Byte(void) {
@@ -54,21 +54,22 @@ void USART_Send_Byte(uint8_t data) {
 int main(void) {
 	autoMode = 0;
 	DDRD = (1<<DDD3)|(1<<DDD4);//Set pin directions
+	PORTD = (1<<DDD4);//Set RTS high
 	PCMSK0 = (1<<PCINT0);//Change pin mask
 	PCICR = (1<<PCIE0);//Enable pin change interrupts
 	USART_Init();
 	sei();//Enable interrupts in status register
 	
-	while(1) {
+    while(1) {
 		while(autoMode == 0) {
 			while((PIND & 0x02) == 1);//Wait for Firefly to want to send
 			cli();//Disable interrupts in status register
 			PIND = PIND & (~(1<<PINA4));//Ok to send
 			uint8_t data = USART_Receive_Byte();
 			PIND = PIND | (1<<PINA4);
-			sei();
+			sei();//Enable interrupts in status register
 		}
 		
-		while(autoMode == 1);
-	}
+		while(autoMode == 1);	
+    }
 }
