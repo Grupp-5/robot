@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Atmel Studio Solution File, Format Version 11.00
-Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "robot", "robot\robot.cproj", "{462AE455-E0D1-41D5-B112-ED794A473A1A}"
-EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "styrenhet", "styrenhet\styrenhet.cproj", "{DCE6C7E3-EE26-4D79-826B-08594B9AD897}"
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "enkelt_test", "enkelt_test\enkelt_test.cproj", "{4657A208-E112-42EC-AF4A-355E4EE83F70}"
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "kommunikationsenhet", "kommunikationsenhet\kommunikationsenhet.cproj", "{A2B8D1C1-6D38-453F-98D0-7E9A9BFBC71C}"
+EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "i2c", "i2c\i2c.cproj", "{D941BC4C-5050-48B7-896A-77FF917AB811}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,9 +16,6 @@ Global
 		styrenhet|AVR = styrenhet|AVR
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{462AE455-E0D1-41D5-B112-ED794A473A1A}.Debug|AVR.ActiveCfg = Debug|AVR
-		{462AE455-E0D1-41D5-B112-ED794A473A1A}.Release|AVR.ActiveCfg = Release|AVR
-		{462AE455-E0D1-41D5-B112-ED794A473A1A}.styrenhet|AVR.ActiveCfg = Debug|AVR
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Debug|AVR.ActiveCfg = Debug|AVR
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|AVR.ActiveCfg = Release|AVR
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|AVR.Build.0 = Release|AVR
@@ -35,6 +32,12 @@ Global
 		{A2B8D1C1-6D38-453F-98D0-7E9A9BFBC71C}.Release|AVR.Build.0 = Release|AVR
 		{A2B8D1C1-6D38-453F-98D0-7E9A9BFBC71C}.styrenhet|AVR.ActiveCfg = Debug|AVR
 		{A2B8D1C1-6D38-453F-98D0-7E9A9BFBC71C}.styrenhet|AVR.Build.0 = Debug|AVR
+		{D941BC4C-5050-48B7-896A-77FF917AB811}.Debug|AVR.ActiveCfg = Debug|AVR
+		{D941BC4C-5050-48B7-896A-77FF917AB811}.Debug|AVR.Build.0 = Debug|AVR
+		{D941BC4C-5050-48B7-896A-77FF917AB811}.Release|AVR.ActiveCfg = Release|AVR
+		{D941BC4C-5050-48B7-896A-77FF917AB811}.Release|AVR.Build.0 = Release|AVR
+		{D941BC4C-5050-48B7-896A-77FF917AB811}.styrenhet|AVR.ActiveCfg = Debug|AVR
+		{D941BC4C-5050-48B7-896A-77FF917AB811}.styrenhet|AVR.Build.0 = Debug|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
