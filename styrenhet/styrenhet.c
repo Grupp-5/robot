@@ -6,6 +6,7 @@
 */
 
 #include <avr/io.h>
+#define F_CPU 16000000UL
 #include "ax12.h"
 
 int main(void)
@@ -13,6 +14,10 @@ int main(void)
 	uart_init();
 	while(1)
 	{
-		PingAX(3);
+		byte id;
+		
+		for(id = 1; id <= 18; id++) {
+			ResponsePacket res = PingAX(id);
+		}
 	}
 }
