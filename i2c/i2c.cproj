@@ -100,6 +100,9 @@
     <Compile Include="i2c.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="i2c.h">
+      <SubType>compile</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>
