@@ -155,7 +155,7 @@ ResponsePacket PingAX(byte id) {
 }
 
 ResponsePacket SetTorqueAX(byte id, uint16_t value) {
-	return Write16AX(id, AX_MAX_TORQUE_L, value);
+	return Write16AX(id, AX_TORQUE_LIMIT_L, value);
 }
 
 ResponsePacket SetSpeedAX(byte id, uint16_t value) {
