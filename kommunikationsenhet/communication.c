@@ -22,23 +22,45 @@ volatile uint8_t autoMode;
 ISR(PCINT0_vect) {
 	//Detect falling edge
 	if((PINA & 0x01) == 0) {
-		if(autoMode == 0) {
+		if(autoMode == 0) {//Change mode
 			autoMode = 1;
 		}else {
 			autoMode = 0;
 		}
+		sendToBus(0);//Tell beslutsenhet to change mode
+	}
+}
+
+void sendToBus(uint8_t command)
+{
+	
+}
+
+//Data received interrupt
+ISR(USART1_RX_vect) {
+	uint8_t command = UDR1;
+	if(autoMode == 1) {
+		if(command == 0) {//Change mode
+			autoMode = 0;
+			sendToBus(command);//Tell beslutsenhet to change mode
+		}
+	}else {	
+		if(command == 0) {//Change mode
+			autoMode = 1;
+		}
+		sendToBus(command);
 	}
 }
 
 //Initialize the USART
-void USART_Init(void) {
+void USART_Init() {
 	UBRR1H = (BAUD_PRESCALE >> 8);//High register
 	UBRR1L = BAUD_PRESCALE;//Low register
 	
-	//Default frame format is 8 data bits, no parity and 1 stop bit
-	
+	//Set 8 databits
+	UCSR0C|= (1<<UCSZ00)|(1<<UCSZ01);
 	//Enable RX, TX
-	UCSR1B= ((1<<TXEN1)|(1<<RXEN1));	
+	UCSR1B |= ((1<<TXEN1)|(1<<RXEN1));	
 }
 
 uint8_t USART_Receive_Byte(void) {
@@ -51,25 +73,18 @@ void USART_Send_Byte(uint8_t data) {
 	UDR1 = data; //Puts the data into the buffer, sends the data
 }
 
-int main(void) {
+int main() {
 	autoMode = 0;
+	
 	DDRD = (1<<DDD3)|(1<<DDD4);//Set pin directions
-	PORTD = (1<<DDD4);//Set RTS high
 	PCMSK0 = (1<<PCINT0);//Change pin mask
 	PCICR = (1<<PCIE0);//Enable pin change interrupts
-	USART_Init();
+	UCSR1B |= (1<<RXCIE1)//Enable USART receive interrupt
+	USART_Init();//Initialize USART1
 	sei();//Enable interrupts in status register
 	
+	//Main loop
     while(1) {
-		while(autoMode == 0) {
-			while((PIND & 0x02) == 1);//Wait for Firefly to want to send
-			cli();//Disable interrupts in status register
-			PIND = PIND & (~(1<<PINA4));//Ok to send
-			uint8_t data = USART_Receive_Byte();
-			PIND = PIND | (1<<PINA4);
-			sei();//Enable interrupts in status register
-		}
-		
-		while(autoMode == 1);	
+
     }
 }
