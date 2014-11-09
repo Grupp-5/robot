@@ -1,4 +1,5 @@
 #include "ax12.h"
+#include <util/delay.h>
 
 ResponsePacket SetTorqueAX(byte id, uint16_t value) {
 	return Write16AX(id, AX_TORQUE_LIMIT_L, value, false);
@@ -56,4 +57,54 @@ void SetLayPosition() {
 
 void SetStartPosition() {
 	SendFemur(1023-296);
+	
+	_delay_ms(1000);
+	
+	// 3, 9, 16
+	uint16_t value = 1023-200;
+	SetPositionAX(3, FixMirroring(3, value));
+	SetPositionAX(9, FixMirroring(9, value));
+	SetPositionAX(16, FixMirroring(16, value));
+	
+	value = 1023-360;
+	SetPositionAX(7, FixMirroring(7, value));
+	
+	value = 360;
+	SetPositionAX(1, FixMirroring(1, value));
+	
+	_delay_ms(500);
+	value = 1023-836;
+	SetPositionAX(11, FixMirroring(11, value));
+	SetPositionAX(18, FixMirroring(18, value));
+	SetPositionAX(5, FixMirroring(5, value));
+	value = 1023-250;
+	SetPositionAX(9, FixMirroring(9, value));
+	SetPositionAX(16, FixMirroring(16, value));
+	SetPositionAX(3, FixMirroring(3, value));
+	
+	
+	// Andra sidan
+	_delay_ms(1000);
+	
+	value = 1023-200;
+	SetPositionAX(15, FixMirroring(15, value));
+	SetPositionAX(10, FixMirroring(10, value));
+	SetPositionAX(4, FixMirroring(4, value));
+	
+	value = 1023-360;
+	SetPositionAX(8, FixMirroring(8, value));
+	
+	value = 360;
+	SetPositionAX(2, FixMirroring(2, value));
+	
+	_delay_ms(500);
+	value = 1023-836;
+	SetPositionAX(12, FixMirroring(12, value));
+	SetPositionAX(17, FixMirroring(17, value));
+	SetPositionAX(6, FixMirroring(6, value));
+	value = 1023-250;
+	SetPositionAX(4, FixMirroring(4, value));
+	SetPositionAX(15, FixMirroring(15, value));
+	SetPositionAX(10, FixMirroring(10, value));
+	
 }
