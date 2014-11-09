@@ -17,28 +17,23 @@ int main(void)
 	// Sparas undan hela tiden så att man kan läsa av i Debug
 	ResponsePacket res;
 	
-	byte id = 12;
-	
-	res = PingAX(id);
-	
 	/* TODO: Sätts bara när servor startas om typ.
 	Inte säker på vad som bör göras åt det. */
 	
-	res = SetSpeedAX(id, 300);
-	res = SetTorqueAX(id, 150);
-	res = TorqueEnableAX(id);
+	res = SetSpeedAX(ID_BROADCAST, 100);
+	res = SetTorqueAX(ID_BROADCAST, 1000);
+	res = TorqueEnableAX(ID_BROADCAST);
+	
 	while(1)
 	{
-		res = PingAX(id);
+		res = SetSpeedAX(ID_BROADCAST, 30);
 		
-		// Tanken är att den ska stanna om den inte får något svar.
-		if (res.error == 0xFE) {
-			break;
-		}
+		SetLayPosition();
+		_delay_ms(2000);
 		
-		res = SetPositionAX(id, 300);
-		_delay_ms(1000);
-		res = SetPositionAX(id, 400);
-		_delay_ms(1000);
+		res = SetSpeedAX(ID_BROADCAST, 120);
+		
+		SetStartPosition();
+		_delay_ms(5000);
 	}
 }

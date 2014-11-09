@@ -78,6 +78,8 @@ typedef unsigned char byte;
 #define INST_SYNC_WRITE 0x83
 #define INST_SYNC_REG_WRITE 0x84
 
+#define ID_BROADCAST 0xFE
+
 //Hardware Dependent Item 
 // Default är 1000000bps på AX-12
 
@@ -88,7 +90,6 @@ typedef unsigned char byte;
 #endif
 
 #define DEFAULT_BAUD_RATE ((F_CPU) / (16*1000000)-1)//((F_CPU) / (8*100000)-1) //Ska bli 1,000,000 bps på F_CPU Mhz
-
 
 
 typedef struct {

@@ -50,10 +50,10 @@ void SendTibia(uint16_t value) {
 
 void SetLayPosition() {
 	SendCoxa(511);
-	SendFemur(200);
-	SendTibia(777);
+	SendFemur(1023-200);
+	SendTibia(1023-777);
 }
 
-void SetStartPosition() {	
-	SendFemur(???);
+void SetStartPosition() {
+	SendFemur(1023-296);
 }
