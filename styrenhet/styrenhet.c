@@ -7,7 +7,7 @@
 
 #include <avr/io.h>
 #define F_CPU 16000000UL
-#include "ax12.h"
+#include "servo.h"
 #include <util/delay.h>
 
 int main(void)

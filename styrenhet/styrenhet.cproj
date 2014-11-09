@@ -98,6 +98,12 @@
     <Compile Include="ax12.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="servo.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="servo.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="styrenhet.c">
       <SubType>compile</SubType>
     </Compile>

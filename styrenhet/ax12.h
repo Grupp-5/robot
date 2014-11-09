@@ -1,3 +1,9 @@
+#ifndef _AX12_H_
+#define _AX12_H_
+
+#include <avr/io.h>
+#include <stdbool.h>
+
 typedef unsigned char byte;
 
 #define ON 1
@@ -98,5 +104,7 @@ void uart_init (void);
 ResponsePacket PingAX(byte id);
 ResponsePacket ReadAX(byte id, byte address, byte length);
 ResponsePacket Write8AX(byte id, byte adr, uint8_t value, bool reg);
-ResponsePacket Write16AX(byte id, byte adr, uint16_t value);
+ResponsePacket Write16AX(byte id, byte adr, uint16_t value, bool reg);
 ResponsePacket ActionAX(byte id);
+
+#endif

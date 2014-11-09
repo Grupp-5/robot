@@ -133,7 +133,8 @@ ResponsePacket PingAX(byte id) {
 }
 
 ResponsePacket ReadAX(byte id, byte address, byte length) {
-	SendCmdAX(id, INST_READ, 4, address, length);
+	byte params[2] = {address, length};
+	SendCmdAX(id, INST_READ, 2+2, params);
 	
 	// Ta emot svar
 	ResponsePacket res = ReceiveCmdAX();
@@ -156,9 +157,9 @@ ResponsePacket Write8AX(byte id, byte adr, uint8_t value, bool reg) {
 }
 
 // Skriv till ett 16-bitars register
-ResponsePacket Write16AX(byte id, byte adr, uint16_t value) {
+ResponsePacket Write16AX(byte id, byte adr, uint16_t value, bool reg) {
 	byte params[3] = {adr, value, value >> 8};
-	SendCmdAX(id, INST_WRITE, 2+3, params);
+	SendCmdAX(id, reg ? INST_REG_WRITE : INST_WRITE, 2+3, params);
 
 	// TODO: Förutsatt att AX_RETURN_LEVEL = 2
 	// Ta emot svar
@@ -169,7 +170,7 @@ ResponsePacket Write16AX(byte id, byte adr, uint16_t value) {
 }
 
 ResponsePacket ActionAX(byte id) {
-	SendCmdAX(id, INST_ACTION, 2);
+	SendCmdAX(id, INST_ACTION, 2, 0);
 	
 	// Ta emot svar
 	ResponsePacket res = ReceiveCmdAX();

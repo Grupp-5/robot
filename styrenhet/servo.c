@@ -1,19 +1,19 @@
 #include "ax12.h"
 
 ResponsePacket SetTorqueAX(byte id, uint16_t value) {
-	return Write16AX(id, AX_TORQUE_LIMIT_L, value);
+	return Write16AX(id, AX_TORQUE_LIMIT_L, value, false);
 }
 
 ResponsePacket SetSpeedAX(byte id, uint16_t value) {
-	return Write16AX(id, AX_GOAL_SPEED_L, value);
+	return Write16AX(id, AX_GOAL_SPEED_L, value, false);
 }
 
 ResponsePacket SetPositionAX(byte id, uint16_t value) {
-	return Write16AX(id, AX_GOAL_POSITION_L, value);
+	return Write16AX(id, AX_GOAL_POSITION_L, value, false);
 }
 
 ResponsePacket TorqueEnableAX(byte id) {
-	return Write8AX(id, AX_TORQUE_ENABLE, 1);
+	return Write8AX(id, AX_TORQUE_ENABLE, 1, false);
 }
 
 uint16_t FixMirroring(byte id, uint16_t value) {
