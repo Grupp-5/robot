@@ -10,5 +10,10 @@ ResponsePacket TorqueEnableAX(byte id);
 
 void SetLayPosition();
 void SetStartPosition();
+void Walk();
+
+#define POS_LEG_UP 823
+#define POS_LEG_DOWN 773
+#define STEP_LENGTH 60
 
 #endif

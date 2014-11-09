@@ -31,13 +31,16 @@ int main(void)
 		SetLayPosition();
 		_delay_ms(2000);
 		
-		res = SetSpeedAX(ID_BROADCAST, 120);
+		res = SetSpeedAX(ID_BROADCAST, 200);
 		
 		SetStartPosition();
 		
 		res = ReadAX(11, AX_PRESENT_POSITION_L, 2);
 		res = ReadAX(9, AX_PRESENT_POSITION_L, 2);
 		
+		_delay_ms(2000);
+		
+		Walk();
 		_delay_ms(5000);
 	}
 }
