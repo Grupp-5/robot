@@ -13,6 +13,14 @@
 #define I2C_START 0
 #define I2C_DATA  1
 #define I2C_STOP  2
+#define MAX_TRIES 50
+
+enum Device {
+	CONTROL,
+	COMMUNICATION,
+	SENSOR,
+	DECISION
+};
 
 unsigned char i2c_transmit(unsigned char type);
 int i2c_writebyte(
