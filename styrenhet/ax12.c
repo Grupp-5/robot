@@ -16,7 +16,8 @@ void uart_init() {
 	UBRR0H = (DEFAULT_BAUD_RATE>>8); // Skifta registret höger 8 bitar
 	UBRR0L = DEFAULT_BAUD_RATE;      // Sätt baud rate
 	
-	DDRD |= (1<<DDD2); //Sätt PD2 till utgång
+	DDRD |= (1<<DDD2)|(1<<DDD3); //Sätt PD2 och PD3 till utgång
+	// PD3 används för att visa UART Timeout
 	
 	UCSR0B |= (1<<TXEN0)|(1<<RXEN0); // Aktivera sändare och mottagare
 	
@@ -36,9 +37,21 @@ void uart_putchar(char c) {
 }
 
 char uart_getchar() {
-	// TODO: Gör så att det blir en timeout efter ett tag
-	loop_until_bit_is_set(UCSR0A, RXC0); // Vänta tills data existerar.
-	return UDR0;
+	
+	PORTD &= ~(1<<PORTD3);
+	
+	// Vänta tills data existerar. Eller om det tar för lång tid, skicka
+	// tillbaka ett error.
+	// TODO: Satte bara 50000 för att det kändes bra. Timeouts? Konstant nånstans?
+	uint16_t i=50000;
+	do {
+		if (UCSR0A & (1<<RXC0)) return UDR0;
+	} while(--i);
+	
+	// TODO: Set global error instead
+	PORTD |= (1<<PORTD3);
+	// TODO: Oklar konstant. FE som i FEl.
+	return 0xFE;
 }
 
 void SetSendAX() {
@@ -105,6 +118,31 @@ int SendCmdAX(byte id, byte inst, byte len, byte params[]) {
 	return 0;
 }
 
+// Skriv till ett 8-bitars register
+ResponsePacket Write8AX(byte id, byte adr, uint8_t value) {
+	byte params[2] = {adr, value};
+	SendCmdAX(id, INST_WRITE, 2+2, params);
+
+	// TODO: Förutsatt att AX_RETURN_LEVEL = 2
+	// Ta emot svar
+	ResponsePacket res = ReceiveCmdAX();
+	
+	// TODO: Kolla efter fel
+	return res;
+}
+
+// Skriv till ett 16-bitars register
+ResponsePacket Write16AX(byte id, byte adr, uint16_t value) {
+	byte params[3] = {adr, value, value >> 8};
+	SendCmdAX(id, INST_WRITE, 2+3, params);
+
+	// TODO: Förutsatt att AX_RETURN_LEVEL = 2
+	// Ta emot svar
+	ResponsePacket res = ReceiveCmdAX();
+	
+	// TODO: Kolla efter fel
+	return res;
+}
 // Instruktioner
 ResponsePacket PingAX(byte id) {
 	SendCmdAX(id, INST_PING, 2, 0);
@@ -114,4 +152,20 @@ ResponsePacket PingAX(byte id) {
 	
 	// TODO: Kolla efter fel
 	return res;
+}
+
+ResponsePacket SetTorqueAX(byte id, uint16_t value) {
+	return Write16AX(id, AX_MAX_TORQUE_L, value);
+}
+
+ResponsePacket SetSpeedAX(byte id, uint16_t value) {
+	return Write16AX(id, AX_GOAL_SPEED_L, value);
+}
+
+ResponsePacket SetPositionAX(byte id, uint16_t value) {
+	return Write16AX(id, AX_GOAL_POSITION_L, value);
+}
+
+ResponsePacket TorqueEnableAX(byte id) {
+	return Write8AX(id, AX_TORQUE_ENABLE, 1);
 }
