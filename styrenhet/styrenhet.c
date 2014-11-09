@@ -34,6 +34,10 @@ int main(void)
 		res = SetSpeedAX(ID_BROADCAST, 120);
 		
 		SetStartPosition();
+		
+		res = ReadAX(11, AX_PRESENT_POSITION_L, 2);
+		res = ReadAX(9, AX_PRESENT_POSITION_L, 2);
+		
 		_delay_ms(5000);
 	}
 }
