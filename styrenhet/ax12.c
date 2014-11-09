@@ -7,6 +7,7 @@
 #include <avr/io.h>
 #include "ax12.h"
 #include <util/delay.h>
+#include <stdbool.h>
 
 //Globala variabler
 byte checksum;
@@ -118,10 +119,33 @@ int SendCmdAX(byte id, byte inst, byte len, byte params[]) {
 	return 0;
 }
 
+//============ INSTRUKTIONER ===================
+
+//PING
+ResponsePacket PingAX(byte id) {
+	SendCmdAX(id, INST_PING, 2, 0);
+	
+	// Ta emot svar
+	ResponsePacket res = ReceiveCmdAX();
+	
+	// TODO: Kolla efter fel
+	return res;
+}
+
+ResponsePacket ReadAX(byte id, byte address, byte length) {
+	SendCmdAX(id, INST_READ, 4, address, length);
+	
+	// Ta emot svar
+	ResponsePacket res = ReceiveCmdAX();
+	
+	// TODO: Kolla efter fel
+	return res;
+}
+
 // Skriv till ett 8-bitars register
-ResponsePacket Write8AX(byte id, byte adr, uint8_t value) {
+ResponsePacket Write8AX(byte id, byte adr, uint8_t value, bool reg) {
 	byte params[2] = {adr, value};
-	SendCmdAX(id, INST_WRITE, 2+2, params);
+	SendCmdAX(id, reg ? INST_REG_WRITE : INST_WRITE, 2+2, params);
 
 	// TODO: Förutsatt att AX_RETURN_LEVEL = 2
 	// Ta emot svar
@@ -143,29 +167,13 @@ ResponsePacket Write16AX(byte id, byte adr, uint16_t value) {
 	// TODO: Kolla efter fel
 	return res;
 }
-// Instruktioner
-ResponsePacket PingAX(byte id) {
-	SendCmdAX(id, INST_PING, 2, 0);
+
+ResponsePacket ActionAX(byte id) {
+	SendCmdAX(id, INST_ACTION, 2);
 	
 	// Ta emot svar
 	ResponsePacket res = ReceiveCmdAX();
 	
 	// TODO: Kolla efter fel
 	return res;
-}
-
-ResponsePacket SetTorqueAX(byte id, uint16_t value) {
-	return Write16AX(id, AX_TORQUE_LIMIT_L, value);
-}
-
-ResponsePacket SetSpeedAX(byte id, uint16_t value) {
-	return Write16AX(id, AX_GOAL_SPEED_L, value);
-}
-
-ResponsePacket SetPositionAX(byte id, uint16_t value) {
-	return Write16AX(id, AX_GOAL_POSITION_L, value);
-}
-
-ResponsePacket TorqueEnableAX(byte id) {
-	return Write8AX(id, AX_TORQUE_ENABLE, 1);
 }

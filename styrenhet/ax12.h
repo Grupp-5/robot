@@ -95,9 +95,8 @@ typedef struct {
 } ResponsePacket;
 
 void uart_init (void);
-void uart_putchar(char c);
 ResponsePacket PingAX(byte id);
-ResponsePacket SetTorqueAX(byte id, uint16_t value);
-ResponsePacket SetSpeedAX(byte id, uint16_t value);
-ResponsePacket SetPositionAX(byte id, uint16_t value);
-ResponsePacket TorqueEnableAX(byte id);
+ResponsePacket ReadAX(byte id, byte address, byte length);
+ResponsePacket Write8AX(byte id, byte adr, uint8_t value, bool reg);
+ResponsePacket Write16AX(byte id, byte adr, uint16_t value);
+ResponsePacket ActionAX(byte id);
