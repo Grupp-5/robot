@@ -7,6 +7,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include "Communication.h"
 
 //Set CPU clock
 #define F_CPU 8000000UL
@@ -15,6 +16,12 @@
 #define USART_BAUDRATE 115200
 #define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 16UL))) - 1)
 volatile uint8_t autoMode;
+volatile uint8_t sendData;
+
+void sendToBus(uint8_t command)
+{
+	
+}
 
 //Interrupt routine for PCINT0
 //Switch autoMode
@@ -27,25 +34,21 @@ ISR(PCINT0_vect) {
 		}else {
 			autoMode = 0;
 		}
-		sendToBus(0);//Tell beslutsenhet to change mode
+		sendToBus(CHANGEMODE);//Tell beslutsenhet to change mode
 	}
 }
 
-void sendToBus(uint8_t command)
-{
-	
-}
 
 //Data received interrupt
 ISR(USART1_RX_vect) {
 	uint8_t command = UDR1;
 	if(autoMode == 1) {
-		if(command == 0) {//Change mode
+		if(command == CHANGEMODE) {//Change mode
 			autoMode = 0;
 			sendToBus(command);//Tell beslutsenhet to change mode
 		}
 	}else {	
-		if(command == 0) {//Change mode
+		if(command == CHANGEMODE) {//Change mode
 			autoMode = 1;
 		}
 		sendToBus(command);
@@ -64,27 +67,26 @@ void USART_Init() {
 }
 
 uint8_t USART_Receive_Byte(void) {
-	while(((UCSR1A) & (1<<RXC1)) == 0);//Wait for data
+	while(!((UCSR1A) & (1<<RXC1)));//Wait for data
 	return UDR1;//Return received data from buffer
 }
 
-void USART_Send_Byte(uint8_t data) {
-	while((UCSR1A & (1<<UDRE1)) == 0);//Wait for empty transmit buffer
-	UDR1 = data; //Puts the data into the buffer, sends the data
+void USART_Send_Byte(void) {
+	while(!(UCSR1A & (1<<UDRE1)));//Wait for empty transmit buffer
+	UDR1 = sendData; //Puts the data into the buffer, sends the data
 }
 
-int main() {
+int main(void) {
 	autoMode = 0;
-	
 	DDRD = (1<<DDD3)|(1<<DDD4);//Set pin directions
 	PCMSK0 = (1<<PCINT0);//Change pin mask
 	PCICR = (1<<PCIE0);//Enable pin change interrupts
-	UCSR1B |= (1<<RXCIE1)//Enable USART receive interrupt
+	UCSR1B |= (1<<RXCIE1);//Enable USART receive interrupt
 	USART_Init();//Initialize USART1
+	sendData = 16;
+	USART_Send_Byte();
 	sei();//Enable interrupts in status register
-	
-	//Main loop
     while(1) {
-
+		
     }
 }
