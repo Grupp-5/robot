@@ -39,10 +39,10 @@ int main(void) {
 	  The analog input channel and differential gain are selected by
 	  writing to the MUX bits in ADMUX.
 	*/
-	// ? ? ? ? ? ? ? ? ?
-	// 0 0 0 0 0 X X X X
+	// ? ? ? ? ? ? ? ?
+	// 0 0 0 X X X X X
 	//------------------
-	// ? ? ? ? X X X X X
+	// ? ? ? X X X X X
 	// ADMUX: p. 256... Table 21-4.
 	ADMUX |= IR_BL;                 // Sätt ettor
 	ADMUX &= ~(0b00011111 & ~IR_F); // Sätt nollor
