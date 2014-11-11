@@ -10,7 +10,7 @@
 #include "Communication.h"
 
 //Set CPU clock
-#define F_CPU 8000000UL
+#define F_CPU 14745600UL
 
 //Define properties for USART
 #define USART_BAUDRATE 115200
@@ -83,7 +83,7 @@ int main(void) {
 	PCICR = (1<<PCIE0);//Enable pin change interrupts
 	UCSR1B |= (1<<RXCIE1);//Enable USART receive interrupt
 	USART_Init();//Initialize USART1
-	sendData = 16;
+	sendData = 7;
 	USART_Send_Byte();
 	sei();//Enable interrupts in status register
     while(1) {
