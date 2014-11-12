@@ -9,6 +9,8 @@ Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "kommunikationsenhet", "komm
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "i2c", "i2c\i2c.cproj", "{D941BC4C-5050-48B7-896A-77FF917AB811}"
 EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "sensorenhet", "sensorenhet\sensorenhet.cproj", "{ECE0EAC8-E073-42DD-A037-D15D091CD74E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVR = Debug|AVR
@@ -38,6 +40,12 @@ Global
 		{D941BC4C-5050-48B7-896A-77FF917AB811}.Release|AVR.Build.0 = Release|AVR
 		{D941BC4C-5050-48B7-896A-77FF917AB811}.styrenhet|AVR.ActiveCfg = Debug|AVR
 		{D941BC4C-5050-48B7-896A-77FF917AB811}.styrenhet|AVR.Build.0 = Debug|AVR
+		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.Debug|AVR.ActiveCfg = Debug|AVR
+		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.Debug|AVR.Build.0 = Debug|AVR
+		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.Release|AVR.ActiveCfg = Release|AVR
+		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.Release|AVR.Build.0 = Release|AVR
+		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.styrenhet|AVR.ActiveCfg = Debug|AVR
+		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.styrenhet|AVR.Build.0 = Debug|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
