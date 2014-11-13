@@ -12,6 +12,8 @@ void SetLayPosition();
 void SetStartPosition();
 void Walk();
 
+void moveLegTo(byte legid, double x, double y, double z);
+
 #define POS_LEG_UP 823
 #define POS_LEG_DOWN 773
 #define STEP_LENGTH 60
