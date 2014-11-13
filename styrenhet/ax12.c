@@ -148,10 +148,14 @@ ResponsePacket Write8AX(byte id, byte adr, uint8_t value, bool reg) {
 	byte params[2] = {adr, value};
 	SendCmdAX(id, reg ? INST_REG_WRITE : INST_WRITE, 2+2, params);
 
-	// TODO: Förutsatt att AX_RETURN_LEVEL = 2
-	// Ta emot svar
-	ResponsePacket res = ReceiveCmdAX();
-	
+	// TODO: Receive-mode är ansvarig för att stänga av "send mode"
+	ResponsePacket res;
+	if (id != ID_BROADCAST) {
+		// TODO: Förutsatt att AX_RETURN_LEVEL = 2
+		// Ta emot svar
+		res = ReceiveCmdAX();
+	}
+
 	// TODO: Kolla efter fel
 	return res;
 }
@@ -161,9 +165,13 @@ ResponsePacket Write16AX(byte id, byte adr, uint16_t value, bool reg) {
 	byte params[3] = {adr, value, value >> 8};
 	SendCmdAX(id, reg ? INST_REG_WRITE : INST_WRITE, 2+3, params);
 
-	// TODO: Förutsatt att AX_RETURN_LEVEL = 2
-	// Ta emot svar
-	ResponsePacket res = ReceiveCmdAX();
+	// TODO: Receive-mode är ansvarig för att stänga av "send mode"
+	ResponsePacket res;
+	if (id != ID_BROADCAST) {
+		// TODO: Förutsatt att AX_RETURN_LEVEL = 2
+		// Ta emot svar
+		res = ReceiveCmdAX();
+	}
 	
 	// TODO: Kolla efter fel
 	return res;
