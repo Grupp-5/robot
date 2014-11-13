@@ -14,14 +14,18 @@ namespace Telemetry
         public static byte LEFT = 0x03;
         public static byte RIGHT = 0x04;
         public static byte STOP = 0x05;
+        public static byte START_STOP_TIMER = 0x06;
 
         private SerialPort connection;
+        private long startTime;
+        private bool counting;
 
         private System.Text.StringBuilder log = new System.Text.StringBuilder();
         private int counter;
 
         public Serial(String port, Int32 baud, Parity p, Int32 databits, StopBits b)
         {
+            counting = false;
             connection = new SerialPort(port, baud, p, databits, b);
             connection.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived); 
             if (!connection.IsOpen)
@@ -53,6 +57,22 @@ namespace Telemetry
             //Append to log stringbuilder 
             for (int i = 0; i < bytesRead; i++)
             {
+                if(buffer[i] == Serial.START_STOP_TIMER)
+                {
+                    if (counting)
+                    {
+                        counting = false;
+                        Console.WriteLine("");
+                        Console.Write("Finished in: ");
+                        Console.Write(DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond - startTime);
+                        Console.WriteLine(" milliseconds");
+                    }
+                    else
+                    {
+                        counting = true;
+                        startTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                    }
+                }
                 log.Append(counter.ToString()+":\t0b"+Convert.ToString(buffer[i], 2).PadLeft(8, '0')+"\t0x"+Convert.ToString(buffer[i], 16).PadLeft(2, '0')+"\n");
                 counter++;
             }
@@ -83,6 +103,7 @@ namespace Telemetry
 
             Console.Write("Enter COM port>> ");
             string port = Console.ReadLine();
+
             Serial serial = new Serial(port, 115200, Parity.None, 8, StopBits.One);
 
             Console.WriteLine("Connection established.");
