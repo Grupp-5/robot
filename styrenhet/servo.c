@@ -1,6 +1,7 @@
 #include "ax12.h"
 #include "servo.h"
 #include <util/delay.h>
+#include <math.h>
 
 ResponsePacket SetTorqueAX(byte id, uint16_t value) {
 	return Write16AX(id, AX_TORQUE_LIMIT_L, value, false);
@@ -172,5 +173,62 @@ void Walk() {
 		//_delay_ms(10);
 		SetBackward(false);
 	}
+}
+
+// Konverterar radianer till grader som AX12 förstår
+#define RAD_TO_AX_DEG 195.569594071321 // = ((1024/300)*360)/(pi*2)
+// Längder på ben i cm
+#define C 5.0
+#define F 6.6
+#define T 13.3
+
+// Led-nummer i LEGS-arrayen
+#define COXA  0
+#define FEMUR 1
+#define TIBIA 2
+
+byte LEGS[6][3] = {
+	{1 ,  3,  5},
+	{2 ,  4,  6},
+	{13, 15, 17},
+	{14, 16, 18},
+	{7 ,  9, 11},
+	{8 , 10, 12}
+};
+
+/**
+ * Räknar ut vilka vinklar servona ska ha för att komma till
+ * positionen (x, y, z) cm och flyttar dem dit.
+ *
+ * \param legid    ben (1..6)
+ * \param x, y, z  koordinater i cm, gör inga bound-checkar
+ */
+void moveLegTo(byte legid, double x, double y, double z)
+{
+	volatile double gamma = atan2(y, x);
+	volatile double CoxaX = C * cos(gamma);
+	volatile double CoxaY = C * sin(gamma);
+
+	volatile double L = sqrt(pow(x-CoxaX,2) + pow(y-CoxaY,2) + pow(z,2));
+	volatile double alpha1;
+	if (z == 0) {
+		alpha1 = M_PI/2;
+	} else {
+		alpha1 = acos(-z/L);
+	}
+	volatile double alpha2 = acos((pow(F,2)+pow(L,2)-pow(T,2))/(2*L*F));
+
+	volatile double alpha = alpha1 + alpha2;
+
+	volatile double beta = acos((pow(F,2) + pow(T,2) - pow(L,2))/(2*F*T));
+
+	alpha -= M_PI/2;
+	beta = M_PI - beta;
 	
+	volatile uint16_t coxa_gamma = RAD_TO_AX_DEG*gamma + 511;
+	volatile uint16_t femur_alpha = RAD_TO_AX_DEG*alpha + 553;
+	volatile uint16_t tibia_beta = 624 - RAD_TO_AX_DEG*beta;
+	SetPositionAX(LEGS[legid-1][COXA],  coxa_gamma );
+	SetPositionAX(LEGS[legid-1][FEMUR], femur_alpha);
+	SetPositionAX(LEGS[legid-1][TIBIA], tibia_beta );
 }
