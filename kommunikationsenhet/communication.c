@@ -16,7 +16,6 @@
 #define USART_BAUDRATE 115200
 #define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 16UL))) - 1)
 volatile uint8_t autoMode;
-volatile uint8_t sendData;
 
 void sendToBus(uint8_t command)
 {
@@ -67,12 +66,12 @@ void USART_Init() {
 }
 
 uint8_t USART_Receive_Byte(void) {
-	while(!((UCSR1A) & (1<<RXC1)));//Wait for data
+	loop_until_bit_is_set(UCSR1A,RXC1);//Wait for data
 	return UDR1;//Return received data from buffer
 }
 
-void USART_Send_Byte(void) {
-	while(!(UCSR1A & (1<<UDRE1)));//Wait for empty transmit buffer
+void USART_Send_Byte(uint8_t sendData) {
+	loop_until_bit_is_set(UCSR1A,UDRE1);//Wait for empty transmit buffer
 	UDR1 = sendData; //Puts the data into the buffer, sends the data
 }
 
@@ -83,8 +82,6 @@ int main(void) {
 	PCICR = (1<<PCIE0);//Enable pin change interrupts
 	UCSR1B |= (1<<RXCIE1);//Enable USART receive interrupt
 	USART_Init();//Initialize USART1
-	sendData = 7;
-	USART_Send_Byte();
 	sei();//Enable interrupts in status register
     while(1) {
 		
