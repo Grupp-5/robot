@@ -44,13 +44,24 @@ ISR(TIMER1_OVF_vect) {
 	TCNT1L = 0x00; //Reset Timer1 low register
 }
 
-//Initialize the timer interrupt to happen
+ISR(TIMER3_OVF_vect) {
+	makeDecision();
+	TCNT3H = 0x80; //Reset Timer3 high register
+	TCNT3L = 0x00; //Reset Timer3 low register
+}
+
+//Initialize the timer interrupts to happen
 //approximately once per second 
 void initTimer(void) {
 	TIMSK1 = (1<<TOIE1);//Enable timer overflow interrupt for Timer1
 	TCNT1H = 0x80; //Initialize Timer1 high register
 	TCNT1L = 0x00; //Initialize Timer1 low register
 	TCCR1B = (1<<CS11)|(1<<CS10);//Use clock/64 prescaler
+	
+	TIMSK3 = (1<<TOIE3);//Enable timer overflow interrupt for Timer3
+	TCNT3H = 0x00; //Initialize Timer3 high register
+	TCNT3L = 0x00; //Initialize Timer3 low register
+	TCCR3B = (1<<CS31)|(1<<CS30);//Use clock/64 prescaler
 }
 
 void getSensorValues(void) {
