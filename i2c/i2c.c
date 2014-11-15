@@ -48,7 +48,6 @@ void slave_transmit(Data data) {
 			SET_BITMASK(TWCR,
 			    (1<<TWSTO) | (1<<TWINT) | (1<<TWEA),
 			                 (1<<TWINT) | (1<<TWEA));
-
 			WAIT_ON_BUS; // Vänta på att mastern fått meddelandet
 		} else {
 			SET_BITMASK(TWCR,
@@ -56,18 +55,17 @@ void slave_transmit(Data data) {
 			                 (1<<TWINT)            );
 			WAIT_ON_BUS;
 		}
-
-		if ((TWSR & 0b11111000) != TW_ST_DATA_ACK)
-			PORTB |= ERROR;
 	}
 
-	// Fyll ut med ettor ifall master vill ha mer data
-	while((TWSR & 0b11111000) == TW_ST_DATA_ACK) {
-		PORTB |= ERROR;
-		TWDR = 0xFF;
-		SET_BITMASK(TWCR,
-		    (1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEA),
-		                             (1<<TWINT) | (1<<TWEA));
-		WAIT_ON_BUS;
+	// TODO: Kanske göra något? Förmodligen inte.
+	if ((TWSR & 0b11111000) != TW_ST_DATA_NACK)
+		PORTB |= 1<<PORTB1;
+
+	if((TWSR & 0b11111000) == TW_ST_DATA_ACK) {
+		PORTB |= 1<<PORTB2;
 	}
+
+	SET_BITMASK(TWCR,
+		(1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEA),
+		                         (1<<TWINT) | (1<<TWEA));
 }

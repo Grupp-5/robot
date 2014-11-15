@@ -21,8 +21,6 @@ ISR(TWI_vect)
 		case REQUEST_TO_WRITE:
 			slave_transmit(dataToTransmit);
 			break;
-		case REQUEST_TO_READ:
-			slave_receive(&dataToReceive);
 	}
 	
 	sei();
