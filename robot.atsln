@@ -13,6 +13,11 @@ Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "sensorenhet", "sensorenhet\
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "beslutsenhet", "beslutsenhet\beslutsenhet.cproj", "{602E33E7-548F-4520-9640-2DC8CB8C3830}"
 EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "i2c_slave", "i2c_slave\i2c_slave.cproj", "{B73132DF-9448-415E-8D5E-1D87A2A8F478}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D941BC4C-5050-48B7-896A-77FF917AB811} = {D941BC4C-5050-48B7-896A-77FF917AB811}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVR = Debug|AVR
@@ -21,7 +26,6 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Debug|AVR.ActiveCfg = Debug|AVR
-		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Debug|AVR.Build.0 = Debug|AVR
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|AVR.ActiveCfg = Release|AVR
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|AVR.Build.0 = Release|AVR
 		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.styrenhet|AVR.ActiveCfg = Debug|AVR
@@ -43,17 +47,21 @@ Global
 		{D941BC4C-5050-48B7-896A-77FF917AB811}.styrenhet|AVR.ActiveCfg = Debug|AVR
 		{D941BC4C-5050-48B7-896A-77FF917AB811}.styrenhet|AVR.Build.0 = Debug|AVR
 		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.Debug|AVR.ActiveCfg = Debug|AVR
-		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.Debug|AVR.Build.0 = Debug|AVR
 		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.Release|AVR.ActiveCfg = Release|AVR
 		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.Release|AVR.Build.0 = Release|AVR
 		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.styrenhet|AVR.ActiveCfg = Debug|AVR
 		{ECE0EAC8-E073-42DD-A037-D15D091CD74E}.styrenhet|AVR.Build.0 = Debug|AVR
 		{602E33E7-548F-4520-9640-2DC8CB8C3830}.Debug|AVR.ActiveCfg = Debug|AVR
-		{602E33E7-548F-4520-9640-2DC8CB8C3830}.Debug|AVR.Build.0 = Debug|AVR
 		{602E33E7-548F-4520-9640-2DC8CB8C3830}.Release|AVR.ActiveCfg = Release|AVR
 		{602E33E7-548F-4520-9640-2DC8CB8C3830}.Release|AVR.Build.0 = Release|AVR
 		{602E33E7-548F-4520-9640-2DC8CB8C3830}.styrenhet|AVR.ActiveCfg = Debug|AVR
 		{602E33E7-548F-4520-9640-2DC8CB8C3830}.styrenhet|AVR.Build.0 = Debug|AVR
+		{B73132DF-9448-415E-8D5E-1D87A2A8F478}.Debug|AVR.ActiveCfg = Debug|AVR
+		{B73132DF-9448-415E-8D5E-1D87A2A8F478}.Debug|AVR.Build.0 = Debug|AVR
+		{B73132DF-9448-415E-8D5E-1D87A2A8F478}.Release|AVR.ActiveCfg = Release|AVR
+		{B73132DF-9448-415E-8D5E-1D87A2A8F478}.Release|AVR.Build.0 = Release|AVR
+		{B73132DF-9448-415E-8D5E-1D87A2A8F478}.styrenhet|AVR.ActiveCfg = Debug|AVR
+		{B73132DF-9448-415E-8D5E-1D87A2A8F478}.styrenhet|AVR.Build.0 = Debug|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
