@@ -21,6 +21,9 @@ ISR(TWI_vect)
 		case REQUEST_TO_WRITE:
 			slave_transmit(dataToTransmit);
 			break;
+		case REQUEST_TO_READ:
+			slave_receive(&dataToReceive);
+			break;
 	}
 	
 	sei();
@@ -29,14 +32,16 @@ ISR(TWI_vect)
 int main() {
 	sei();
 	
-	slave_init(0x24);
-	
+	dataToReceive.count = 4;	
+	slave_init(0x26);
+	/*
 	dataToTransmit.id = COMMUNICATION_DATA;
 	dataToTransmit.count = 4;
 	dataToTransmit.data[0] = 13;
 	dataToTransmit.data[1] = 37;
 	dataToTransmit.data[2] = 0;
 	dataToTransmit.data[3] = 255;
+	*/
 	
 	while (1) {}
 }

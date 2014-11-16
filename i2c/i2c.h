@@ -52,6 +52,10 @@ void send_start_condition(void);
 /* Hämta från slav */
 void master_receive(uint8_t slave_address, Data *data);
 
+/* Skicka till slav */
+void master_transmit(uint8_t slave_address, Data data);
 
 void slave_transmit(Data data);
+
+void slave_receive(Data *data);
 #endif /* I2C_H_ */

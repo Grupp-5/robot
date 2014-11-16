@@ -25,8 +25,21 @@ int main() {
 	DDRB = 0xFF;
 
 	send_start_condition();
-
+	
+	/*
 	dataToReceive.count = 4;
-	master_receive(0x24, &dataToReceive);
-	return;
+	master_receive(0x26, &dataToReceive);
+	PORTB = (1 << PORTB0);
+	*/
+	
+	dataToTransmit.id = COMMUNICATION_DATA;
+	dataToTransmit.count = 4;
+	dataToTransmit.data[0] = 13;
+	dataToTransmit.data[1] = 37;
+	dataToTransmit.data[2] = 0;
+	dataToTransmit.data[3] = 255;
+	master_transmit(0x26, dataToTransmit);
+	PORTB = (1 << PORTB0);
+	
+	return 0;
 }
