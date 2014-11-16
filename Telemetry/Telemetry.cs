@@ -30,7 +30,24 @@ namespace Telemetry
             connection.DataReceived += new SerialDataReceivedEventHandler(_serialPort_DataReceived); 
             if (!connection.IsOpen)
             {
-                connection.Open();
+                try
+                {
+                    connection.Open();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Failed to open connection.");
+                    System.Threading.Thread.Sleep(500);
+                    Console.Write("Closing down");
+                    for (int i = 0; i < 3; i++)
+                    {
+                        System.Threading.Thread.Sleep(500);
+                        Console.Write(".");
+                    }
+
+                    System.Threading.Thread.Sleep(500);
+                    System.Environment.Exit(0);
+                }
             }
             connection.Handshake = System.IO.Ports.Handshake.None;
             connection.DiscardInBuffer();
@@ -96,6 +113,9 @@ namespace Telemetry
 
         static void Main(string[] args)
         {
+            byte P = 1;
+            byte D = 1;
+
             Console.WriteLine("+----------------------------+");
             Console.WriteLine("|Epic Telemetry for Spiderbot|");
             Console.WriteLine("+----------------------------+");
@@ -104,9 +124,23 @@ namespace Telemetry
             Console.Write("Enter COM port>> ");
             string port = Console.ReadLine();
 
+            Console.Write("Do you want to set P/D-parameters?(y/n)>> ");
+            if (Console.ReadLine() == "y")
+            {
+                Console.Write("Enter P (1-255)>> ");
+                P = Byte.Parse(Console.ReadLine());
+                Console.Write("Enter D (1-255)>> ");
+                D = Byte.Parse(Console.ReadLine());
+            }
+
             Serial serial = new Serial(port, 115200, Parity.None, 8, StopBits.One);
 
             Console.WriteLine("Connection established.");
+            serial.sendByte(P);
+            Console.WriteLine("P sent successfully");
+            serial.sendByte(D);
+            Console.WriteLine("D sent successfully");
+
             Console.WriteLine();
             Console.WriteLine("+--------------------+");
             Console.WriteLine("| W: FORWARD         |");
