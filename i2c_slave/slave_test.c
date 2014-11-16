@@ -2,7 +2,7 @@
  * slave_test.c
  *
  * Created: 11/14/2014 12:50:03 PM
- *  Author: emiva760
+ *  Author: emiva760, geoza435
  */ 
 #include <util/twi.h>
 #include <avr/io.h>
@@ -32,9 +32,11 @@ int main() {
 	slave_init(0x24);
 	
 	dataToTransmit.id = COMMUNICATION_DATA;
-	dataToTransmit.count = 2;
-	dataToTransmit.data[0] = 0b11010110;
-	dataToTransmit.data[1] = 0b00101001;
+	dataToTransmit.count = 4;
+	dataToTransmit.data[0] = 13;
+	dataToTransmit.data[1] = 37;
+	dataToTransmit.data[2] = 0;
+	dataToTransmit.data[3] = 255;
 	
 	while (1) {}
 }
