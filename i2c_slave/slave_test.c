@@ -2,7 +2,7 @@
  * slave_test.c
  *
  * Created: 11/14/2014 12:50:03 PM
- *  Author: emiva760, geoza435
+ *  Author: emiva760, geoza435, carth567
  */ 
 #include <util/twi.h>
 #include <avr/io.h>

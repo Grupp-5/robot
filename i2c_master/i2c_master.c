@@ -2,7 +2,7 @@
  * i2c_master.c
  *
  * Created: 11/14/2014 4:04:34 PM
- *  Author: emiva760, geoza435
+ *  Author: emiva760, geoza435, carth567
  */
 
 #define F_CPU 14745000UL // För test på komm-enheten

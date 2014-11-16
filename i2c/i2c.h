@@ -2,7 +2,7 @@
  * i2c.h
  *
  * Created: 11/11/2014 11:37:06 AM
- *  Author: emiva760, geoza435
+ *  Author: emiva760, geoza435, carth567
  */
 
 
