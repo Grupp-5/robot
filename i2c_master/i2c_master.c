@@ -26,21 +26,23 @@ int main() {
 	DDRB = 0xFF;
 	PORTB &= 0;
 
-	for (uint16_t i = 0; i < UINT16_MAX/10; i++) {
-		dataToReceive.count = 4;
-		master_receive(0x26, &dataToReceive);
+	dataToTransmit.count = 2;
+	dataToTransmit.data[0] = 48;
+	dataToTransmit.data[1] = 49;
 
-		/*
-		dataToTransmit.id = COMMUNICATION_DATA;
-		dataToTransmit.count = 4;
-		dataToTransmit.data[0] = 13;
-		dataToTransmit.data[1] = 37;
-		dataToTransmit.data[2] = 0;
-		dataToTransmit.data[3] = 255;
-		master_transmit(0x26, dataToTransmit);
-		*/
+	dataToReceive.count = 4;
+
+	while (1) {
+
 		_delay_us(20);
+
+		master_transmit(0x26, dataToTransmit);
+
+		_delay_us(20);
+
+		master_receive(0x26, &dataToReceive);
 	}
+
 	PORTB |= (1<<PORTB0);
 	_delay_us(100);
 

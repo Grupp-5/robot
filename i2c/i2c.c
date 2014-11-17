@@ -24,6 +24,11 @@
 
 #define WAIT_ON_BUS loop_until_bit_is_set(TWCR, TWINT)
 
+// Globala funktionspekare som bestämmer hur en slave ska agera när
+// den får ett READ eller WRITE-kommando.
+Data (*prepare_data_func)();
+void (*interpret_data_func)(Data);
+
 void send_stop_condition(void) {
 	PORTB |= (1<<PORTB4);
 
@@ -41,9 +46,12 @@ void master_init(uint32_t f_cpu, uint32_t bitrate) {
 	                 (1<<TWEN));
 }
 
-void slave_init(uint8_t slave_address) {
-	TWAR = (slave_address << 1);
+void slave_init(Data(*prepare_data)(), void(*interpret_data)(Data), uint8_t slave_address) {
+	// Ställer in de globala funktionspekarna
+	prepare_data_func = prepare_data;
+	interpret_data_func = interpret_data;
 
+	TWAR = (slave_address << 1);
 	TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWIE);
 }
 
@@ -53,12 +61,11 @@ void send_start_condition(void) {
 		(1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEN),
 		(1<<TWSTA) |             (1<<TWINT) | (1<<TWEN));
 
-	PORTB |= (1 << PORTB2);
 	WAIT_ON_BUS; // Vänta på att START condition har överförts
-	PORTB &= ~(1 << PORTB2);
 
-	if ((TWSR & 0b11111000) != TW_START) {
-		PORTB |= (1<<PORTB3); // Fel om TWI Statusregister olikt START
+	// Fel om TWI Statusregister olikt START eller Repeated start
+	if ((TWSR & 0b11111000) != TW_START && (TWSR & 0b11111000) != TW_REP_START) {
+		PORTB |= (1<<PORTB3);
 	}
 }
 
@@ -88,24 +95,22 @@ void master_receive(uint8_t slave_address, Data *data) {
 	if ((TWSR & 0b111111000) != TW_MR_SLA_ACK) { // Något annat än ACK mottaget hände
 		PORTB |= (1<<PORTB0);
 		return; // TODO: Gör rätt sak
-	} else {
-		PORTB |= (1<<PORTB3); // Fick en ACK, allt är OK
 	}
 
 	//TODO: Kolla efter TW_MR_ARB_LOST och TW_MR_SLA_NACK (p.223)
 
 	// Hämta data
 	for (int i = 0; i < data->count; i++) {
-		if (i < data->count -1) // Inte sista datat
-		{
+		if (i < data->count -1) { // Inte sista datat
 			SET_BITMASK(TWCR,
 				(1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEA),
 				                         (1<<TWINT) | (1<<TWEA));
-			} else {			// Sista datat
+		} else {                  // Sista datat
 			SET_BITMASK(TWCR,
 				(1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEA),
-				                         (1<<TWINT)           );
+				                         (1<<TWINT)            );
 		}
+
 		WAIT_ON_BUS; // Vänta på (N)ACK-bit skickats,
 					 // dvs att slaven skickat datat
 
@@ -113,19 +118,19 @@ void master_receive(uint8_t slave_address, Data *data) {
 			PORTB |= (1<<PORTB4);
 			return; // TODO: Gör rätt sak
 		}
+
 		data->data[i] = TWDR; // Spara mottagen data
 	}
 
-	WAIT_ON_BUS;
 	if ((TWSR & 0b11111000) != TW_MR_DATA_NACK) {
-		PORTB |= (1<<PORTB1); // Kolla att överföring har lyckats
+		PORTB |= (1<<PORTB2); // Kolla att överföring har lyckats
 	}
 
 	send_stop_condition();
 }
 
 /************************************************************************/
-/* Master Transmitter Mode                                                 */
+/* Master Transmitter Mode                                              */
 /************************************************************************/
 void master_transmit(uint8_t slave_address, Data data) {
 	send_start_condition();
@@ -150,16 +155,16 @@ void master_transmit(uint8_t slave_address, Data data) {
 				(1<<TWSTO) | (1<<TWINT) | (1<<TWEA),
 							 (1<<TWINT) | (1<<TWEA));
 			WAIT_ON_BUS; // Vänta på att slaven fått meddelandet
-			} else {
+		} else {
 			SET_BITMASK(TWCR,
 				(1<<TWSTO) | (1<<TWINT) | (1<<TWEA),
-							 (1<<TWINT)           );
+							 (1<<TWINT)            );
 			WAIT_ON_BUS;
 		}
 	}
 
 	if ((TWSR & 0b11111000) != TW_MT_DATA_NACK) {
-		PORTB |= (1<<PORTB1); // Kolla att överföring har lyckats
+		PORTB |= (1<<PORTB2); // Kolla att överföring har lyckats
 	}
 
 	send_stop_condition();
@@ -208,30 +213,53 @@ void slave_transmit(Data data) {
 /************************************************************************/
 /* Slave Receiver Mode                                                  */
 /************************************************************************/
-void slave_receive(Data *data) {
-	// Hämta data
-	for (int i = 0; i < data->count; i++) {
-		if (i < data->count -1) // Inte sista datat
-		{
+Data slave_receive() {
+	volatile Data data = {0};
+	// Hämta så mycket data som går
+	while (1) {
+		if (data.count >= MAX_DATA) {
 			SET_BITMASK(TWCR,
 				(1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEA),
-										 (1<<TWINT) | (1<<TWEA));
-			} else {			// Sista datat
-			SET_BITMASK(TWCR,
-				(1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEA),
-										 (1<<TWINT)           );
+				                         (1<<TWINT)            );
+			break;
 		}
-		WAIT_ON_BUS; // Vänta på (N)ACK-bit skickats,
-		// dvs att mastern skickat datat
+		SET_BITMASK(TWCR,
+			(1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEA),
+			                         (1<<TWINT) | (1<<TWEA));
 
-		data->data[i] = TWDR; // Spara mottagen data
+		WAIT_ON_BUS; // Vänta på ACK-bit skickats,
+		             // dvs att mastern skickat datat
+		if ((TWSR & 0b11111000) == TW_SR_STOP) {
+			break;
+		}
+
+		data.data[data.count++] = TWDR; // Spara mottagen data
 	}
 
-	if ((TWSR & 0b11111000) != TW_SR_DATA_NACK) {
+	if ((TWSR & 0b11111000) != TW_SR_STOP) { // Konstig check
 		PORTB |= (1<<PORTB1); // Kolla att överföring har lyckats
 	}
 
 	SET_BITMASK(TWCR,
 		(1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEA),
 								 (1<<TWINT) | (1<<TWEA));
+	return data;
+}
+
+ISR(TWI_vect)
+{
+	cli();
+	PORTB |= (1<<PORTB0);
+	switch(TWSR) {
+		case REQUEST_TO_WRITE:
+			slave_transmit(prepare_data_func());
+			break;
+		case REQUEST_TO_READ:
+			interpret_data_func(slave_receive());
+			break;
+		default:
+			PORTB |= (1<<PORTB3);
+	}
+	PORTB &= ~(1<<PORTB0);
+	sei();
 }
