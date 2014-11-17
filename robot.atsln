@@ -18,6 +18,11 @@ Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "i2c_slave", "i2c_slave\i2c_
 		{D941BC4C-5050-48B7-896A-77FF917AB811} = {D941BC4C-5050-48B7-896A-77FF917AB811}
 	EndProjectSection
 EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "i2c_master", "i2c_master\i2c_master.cproj", "{E04A4E55-4E1A-44E5-A39C-53649C7134CE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D941BC4C-5050-48B7-896A-77FF917AB811} = {D941BC4C-5050-48B7-896A-77FF917AB811}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVR = Debug|AVR
@@ -62,6 +67,12 @@ Global
 		{B73132DF-9448-415E-8D5E-1D87A2A8F478}.Release|AVR.Build.0 = Release|AVR
 		{B73132DF-9448-415E-8D5E-1D87A2A8F478}.styrenhet|AVR.ActiveCfg = Debug|AVR
 		{B73132DF-9448-415E-8D5E-1D87A2A8F478}.styrenhet|AVR.Build.0 = Debug|AVR
+		{E04A4E55-4E1A-44E5-A39C-53649C7134CE}.Debug|AVR.ActiveCfg = Debug|AVR
+		{E04A4E55-4E1A-44E5-A39C-53649C7134CE}.Debug|AVR.Build.0 = Debug|AVR
+		{E04A4E55-4E1A-44E5-A39C-53649C7134CE}.Release|AVR.ActiveCfg = Release|AVR
+		{E04A4E55-4E1A-44E5-A39C-53649C7134CE}.Release|AVR.Build.0 = Release|AVR
+		{E04A4E55-4E1A-44E5-A39C-53649C7134CE}.styrenhet|AVR.ActiveCfg = Debug|AVR
+		{E04A4E55-4E1A-44E5-A39C-53649C7134CE}.styrenhet|AVR.Build.0 = Debug|AVR
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

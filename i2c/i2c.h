@@ -47,8 +47,6 @@ typedef struct {
 void master_init(uint32_t f_cpu, uint32_t bitrate);
 void slave_init(uint8_t slave_address);
 
-void send_start_condition(void);
-
 /* Hämta från slav */
 void master_receive(uint8_t slave_address, Data *data);
 
