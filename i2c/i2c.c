@@ -24,6 +24,9 @@
 
 #define WAIT_ON_BUS loop_until_bit_is_set(TWCR, TWINT)
 
+// De viktiga bitarna i TWSR
+#define TWSR_BITS (TWSR & 0b11111000)
+
 // Globala funktionspekare som bestämmer hur en slave ska agera när
 // den får ett READ eller WRITE-kommando.
 Data (*prepare_data_func)();
@@ -64,7 +67,7 @@ void send_start_condition(void) {
 	WAIT_ON_BUS; // Vänta på att START condition har överförts
 
 	// Fel om TWI Statusregister olikt START eller Repeated start
-	if ((TWSR & 0b11111000) != TW_START && (TWSR & 0b11111000) != TW_REP_START) {
+	if (TWSR_BITS != TW_START && TWSR_BITS != TW_REP_START) {
 		PORTB |= (1<<PORTB3);
 	}
 }
@@ -87,12 +90,12 @@ void master_receive(uint8_t slave_address, Data *data) {
 
 	WAIT_ON_BUS; // Vänta på att sla_r har överförts och (N)ACK har mottagits
 
-	if ((TWSR & 0b111111000) == TW_MR_ARB_LOST) { // "arbitration lost in SLA+R or NACK"
+	if (TWSR_BITS == TW_MR_ARB_LOST) { // "arbitration lost in SLA+R or NACK"
 		PORTB |= (1<<PORTB1);
 		return; // TODO: Gör rätt sak
 	}
 
-	if ((TWSR & 0b111111000) != TW_MR_SLA_ACK) { // Något annat än ACK mottaget hände
+	if (TWSR_BITS != TW_MR_SLA_ACK) { // Något annat än ACK mottaget hände
 		PORTB |= (1<<PORTB0);
 		return; // TODO: Gör rätt sak
 	}
@@ -114,7 +117,7 @@ void master_receive(uint8_t slave_address, Data *data) {
 		WAIT_ON_BUS; // Vänta på (N)ACK-bit skickats,
 					 // dvs att slaven skickat datat
 
-		if ((TWSR & 0b111111000) == TW_MR_ARB_LOST) { // "arbitration lost in SLA+R or NACK"
+		if (TWSR_BITS == TW_MR_ARB_LOST) { // "arbitration lost in SLA+R or NACK"
 			PORTB |= (1<<PORTB4);
 			return; // TODO: Gör rätt sak
 		}
@@ -122,7 +125,7 @@ void master_receive(uint8_t slave_address, Data *data) {
 		data->data[i] = TWDR; // Spara mottagen data
 	}
 
-	if ((TWSR & 0b11111000) != TW_MR_DATA_NACK) {
+	if (TWSR_BITS != TW_MR_DATA_NACK) {
 		PORTB |= (1<<PORTB2); // Kolla att överföring har lyckats
 	}
 
@@ -142,7 +145,7 @@ void master_transmit(uint8_t slave_address, Data data) {
 
 	WAIT_ON_BUS; // Vänta på att sla_w har överförts och (N)ACK har mottagits
 
-	if ((TWSR & 0b111111000) != TW_MT_SLA_ACK) { // Något annat än ACK mottaget hände
+	if (TWSR_BITS != TW_MT_SLA_ACK) { // Något annat än ACK mottaget hände
 		PORTB |= (1<<PORTB0);
 		return;
 	}
@@ -163,7 +166,7 @@ void master_transmit(uint8_t slave_address, Data data) {
 		}
 	}
 
-	if ((TWSR & 0b11111000) != TW_MT_DATA_NACK) {
+	if (TWSR_BITS != TW_MT_DATA_NACK) {
 		PORTB |= (1<<PORTB2); // Kolla att överföring har lyckats
 	}
 
@@ -185,7 +188,7 @@ void slave_transmit(Data data) {
 			WAIT_ON_BUS; // Vänta på att mastern fått meddelandet
 
 			// Förväntade sig en ACK men fick en NACK
-			if ((TWSR & 0b11111000) == TW_ST_DATA_NACK) {
+			if (TWSR_BITS == TW_ST_DATA_NACK) {
 				PORTB |= (1<<PORTB1);
 				break;
 			}
@@ -198,10 +201,10 @@ void slave_transmit(Data data) {
 	}
 
 	// TODO: Kanske göra något? Förmodligen inte.
-	if ((TWSR & 0b11111000) != TW_ST_DATA_NACK)
+	if (TWSR_BITS != TW_ST_DATA_NACK)
 		PORTB |= (1<<PORTB1);
 
-	if ((TWSR & 0b11111000) == TW_ST_DATA_ACK) {
+	if (TWSR_BITS == TW_ST_DATA_ACK) {
 		//PORTB |= (1<<PORTB2);
 	}
 
@@ -229,14 +232,14 @@ Data slave_receive() {
 
 		WAIT_ON_BUS; // Vänta på ACK-bit skickats,
 		             // dvs att mastern skickat datat
-		if ((TWSR & 0b11111000) == TW_SR_STOP) {
+		if (TWSR_BITS == TW_SR_STOP) {
 			break;
 		}
 
 		data.data[data.count++] = TWDR; // Spara mottagen data
 	}
 
-	if ((TWSR & 0b11111000) != TW_SR_STOP) { // Konstig check
+	if (TWSR_BITS != TW_SR_STOP) { // Konstig check
 		PORTB |= (1<<PORTB1); // Kolla att överföring har lyckats
 	}
 
@@ -250,7 +253,7 @@ ISR(TWI_vect)
 {
 	cli();
 	PORTB |= (1<<PORTB0);
-	switch(TWSR) {
+	switch(TWSR_BITS) {
 		case REQUEST_TO_WRITE:
 			slave_transmit(prepare_data_func());
 			break;
