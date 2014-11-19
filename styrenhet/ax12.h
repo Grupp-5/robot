@@ -93,12 +93,12 @@ typedef unsigned char byte;
 
 
 typedef struct {
-	char id;
-	char error;
-	char length;
-	// TODO: 5??
-	char params[5];
-	char checksum;
+	byte id;
+	byte error;
+	byte length;
+	// TODO: 50 är kanske inte optimalt om det allokeras ofta
+	byte params[50];
+	byte checksum;
 } ResponsePacket;
 
 void uart_init (void);
@@ -107,5 +107,7 @@ ResponsePacket ReadAX(byte id, byte address, byte length);
 ResponsePacket Write8AX(byte id, byte adr, uint8_t value, bool reg);
 ResponsePacket Write16AX(byte id, byte adr, uint16_t value, bool reg);
 ResponsePacket ActionAX(byte id);
+
+ResponsePacket ReadAllAX(byte id);
 
 #endif
