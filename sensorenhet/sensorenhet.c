@@ -16,17 +16,17 @@
   Samma ordning som i sensors-taballen, vilket gör att man kan skriva
   t.ex. sensors[IR_FR]
 */
-#define IR_FR ADC0D // = 0
-#define IR_BR ADC1D // = 1
-#define IR_FL ADC2D // = 2
-#define IR_F  ADC3D // = 3
-#define IR_BL ADC4D // = 4
+#define IR_FR ADC0D // = 0 (20 - 150 cm)
+#define IR_BR ADC1D // = 1 (10 -  80 cm)
+#define IR_FL ADC2D // = 2 (20 - 150 cm)
+#define IR_F  ADC3D // = 3 (4  -  30 cm)
+#define IR_BL ADC4D // = 4 (10 -  80 cm)
 
 unsigned int current_sensor = 0;
 char sensors[IR_COUNT] = {IR_FR, IR_BR, IR_FL, IR_F, IR_BL};
 // TODO: volatile bara för debug
 volatile uint16_t x[IR_COUNT];
-volatile double mm[IR_COUNT];
+volatile double cm[IR_COUNT];
 
 //Interruptrutin för AD omvandlare
 ISR (ADC_vect) {
@@ -43,12 +43,40 @@ ISR (ADC_vect) {
 	*/
 	x[current_sensor] = ADCL | (ADCH<<8);
 	
-	mm[current_sensor] = -(4.95383020937e-11)*pow(x[current_sensor],5)
-		+ (1.08781340946e-07)*pow(x[current_sensor],4)
-		- (9.20458860953e-05)*pow(x[current_sensor],3)
-		+  0.0379590492055*pow(x[current_sensor],2)
-		-  7.97634806239*x[current_sensor]
-		+  800.371349512;
+	switch(current_sensor) {
+	
+	case IR_F:
+		cm[current_sensor] = 1.26464293347e-14*pow(x[current_sensor], 6)
+			+ -3.24803038942e-11*pow(x[current_sensor], 5)
+			+ 3.36401952493e-08*pow(x[current_sensor], 4)
+			+ -1.81285077491e-05*pow(x[current_sensor], 3)
+			+ 0.00548098207662*pow(x[current_sensor], 2)
+			+ -0.934445496366*pow(x[current_sensor], 1)
+			+ 83.3762148745*pow(x[current_sensor], 0);
+		break;
+	case IR_FL:
+	case IR_FR:
+		cm[current_sensor] = 1.5358134636e-19*pow(x[current_sensor], 8)
+		+ -5.64979179032e-16*pow(x[current_sensor], 7)
+		+ 8.97290364989e-13*pow(x[current_sensor], 6)
+		+ -8.09866506873e-10*pow(x[current_sensor], 5)
+		+ 4.58857846301e-07*pow(x[current_sensor], 4)
+		+ -0.000169401981795*pow(x[current_sensor], 3)
+		+ 0.0406130112214*pow(x[current_sensor], 2)
+		+ -6.02157204247*x[current_sensor]
+		+ 485.450912561;
+		break;
+	case IR_BR:
+	case IR_BL:
+		cm[current_sensor] = 4.61115274448e-09*pow(x[current_sensor], 4)
+			+ -7.53561554655e-06*pow(x[current_sensor], 3)
+			+ 0.00454026336693*pow(x[current_sensor], 2)
+			+ -1.24981836081*pow(x[current_sensor], 1)
+			+ 154.383035165*pow(x[current_sensor], 0);
+		break;
+	default:
+		cm[current_sensor] = 0xFE;
+	}
 	
 	current_sensor = (current_sensor + 1) % IR_COUNT;
 	
@@ -92,6 +120,15 @@ ISR (ADC_vect) {
   performing the channel change.
 */
 
+#define AD_PRESCALE_2   0b000
+#define AD_PRESCALE_2_  0b001
+#define AD_PRESCALE_4   0b010
+#define AD_PRESCALE_8   0b011
+#define AD_PRESCALE_16  0b100
+#define AD_PRESCALE_32  0b101
+#define AD_PRESCALE_64  0b110
+#define AD_PRESCALE_128 0b111
+
 int main(void) {
 	/* p.241..
 	   The ADC is enabled by setting the ADC Enable bit, ADEN in
@@ -104,8 +141,8 @@ int main(void) {
 	ADMUX |= sensors[current_sensor];
 	ADMUX &= ~(0b00011111 & ~sensors[current_sensor]);
 	
-	//        AD Enable   Interrupt enable   AD Start conversion
-	ADCSRA |= (1<<ADEN) | (1<<ADIE)        | (1<<ADSC);
+	//        AD Enable   Interrupt enable   AD Start conversion  Sista 3 bitarna
+	ADCSRA |= (1<<ADEN) | (1<<ADIE)        | (1<<ADSC)          | AD_PRESCALE_32;
 
 	while(1) {}
 }
