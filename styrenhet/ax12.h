@@ -89,7 +89,7 @@ typedef unsigned char byte;
 # define F_CPU 16000000UL
 #endif
 
-#define DEFAULT_BAUD_RATE ((F_CPU) / (16*1000000)-1)//((F_CPU) / (8*100000)-1) //Ska bli 1,000,000 bps på F_CPU Mhz
+#define DEFAULT_BAUD_RATE ((F_CPU) / (16*1000000)-1) //Ska bli 1,000,000 bps på F_CPU Mhz
 
 
 typedef struct {
