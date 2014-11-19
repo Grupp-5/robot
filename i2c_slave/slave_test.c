@@ -10,6 +10,8 @@
 #define F_CPU 14745600UL
 #include <i2c.h>
 
+#define THIS_ID 0x26
+
 Data dataToReceive = {0};
 
 Data prepare_data() {
@@ -34,9 +36,10 @@ void interpret_data(Data data) {
 }
 
 int main() {
+	PORTB = 0;
 	sei();
 
-	slave_init(prepare_data,interpret_data,0x26);
+	slave_init(prepare_data, interpret_data, THIS_ID);
 
 	while (1) {}
 }

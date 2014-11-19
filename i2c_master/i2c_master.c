@@ -8,17 +8,18 @@
 #define F_CPU 8000000UL
 //#define F_CPU 14745000UL // För test på komm-enheten
 
-#include <util/twi.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
 #include <util/delay.h>
 #include <i2c.h>
 
-Data dataToTransmit = {0};
-Data dataToReceive = {0};
+#define OTHER_ID 0x27
 
 int main() {
+	Data dataToTransmit = {0};
+	Data dataToReceive = {0};
+
 	master_init(F_CPU, SCL_CLOCK);
 
 	_delay_us(200);
@@ -35,12 +36,16 @@ int main() {
 	while (1) {
 
 		_delay_us(20);
-
-		master_transmit(0x26, dataToTransmit);
-
+		PORTB &= 0;
 		_delay_us(20);
 
-		master_receive(0x26, &dataToReceive);
+		master_transmit(OTHER_ID, dataToTransmit);
+
+		_delay_us(20);
+		PORTB &= 0;
+		_delay_us(20);
+
+		master_receive(OTHER_ID, &dataToReceive);
 	}
 
 	PORTB |= (1<<PORTB0);
