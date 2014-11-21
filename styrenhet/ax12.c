@@ -7,7 +7,6 @@
 #include <avr/io.h>
 #include "ax12.h"
 #include <util/delay.h>
-#include <stdbool.h>
 
 //Globala variabler
 byte checksum;
