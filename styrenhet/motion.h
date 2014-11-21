@@ -16,6 +16,9 @@ void SetStartPosition();
 void Walk();
 
 void moveLegTo(byte legid, double x, double y, double z);
+void tiltTo(double angle);
+
+void setStartPosition();
 
 #define POS_LEG_UP 823
 #define POS_LEG_DOWN 773
