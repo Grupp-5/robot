@@ -23,5 +23,11 @@ typedef struct {
 	byte checksum;
 } ResponsePacket;
 
+typedef struct {
+	double gamma;
+	double alpha;
+	double beta;
+} Rotation;
+
 
 #endif /* DATATYPES_H_ */

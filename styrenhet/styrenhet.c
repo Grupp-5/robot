@@ -14,35 +14,47 @@
 
 int main(void)
 {
+	// Delay för att servona ska hinna starta, typ
+	_delay_ms(10);
+	
 	uart_init();
 	
-	// Sparas undan hela tiden så att man kan läsa av i Debug
-	ResponsePacket res;
+	// För att manuellt avläsa data för debugging
+	volatile ResponsePacket servo_infos[18];
 	
-	/* TODO: Sätts bara när servor startas om typ.
-	Inte säker på vad som bör göras åt det. */
+	for (byte id = 1; id <= 18; id++) {
+		servo_infos[id-1] = ReadAllAX(id);
+	}
 	
-	res = SetSpeedAX(ID_BROADCAST, 100);
-	res = SetTorqueAX(ID_BROADCAST, 1000);
-	res = TorqueEnableAX(ID_BROADCAST);
+	SetSpeedAX(ID_BROADCAST, 200);
+	SetTorqueAX(ID_BROADCAST, 300);
+	TorqueEnableAX(ID_BROADCAST);
 	
-	while(1)
-	{
-		res = SetSpeedAX(ID_BROADCAST, 30);
+	setStartPosition();
+	
+	_delay_ms(4000);
+	
+	SetSpeedAX(ID_BROADCAST, 600);
+	SetTorqueAX(ID_BROADCAST, 800);
+	
+	uint16_t wait_delay = 2000;
+	uint16_t delay = 19;
+	double from = 0;
+	double to = 0.3;
+	double step_size = 0.05;
+	
+	while(1) {
+		_delay_ms(wait_delay);
+		for (double step = from; step <= to; step += step_size) {
+			tiltTo(step);
+			_delay_ms(delay);
+		}
+		from = -to;
 		
-		SetLayPosition();
-		_delay_ms(2000);
-		
-		res = SetSpeedAX(ID_BROADCAST, 200);
-		
-		SetStartPosition();
-		
-		res = ReadAX(11, AX_PRESENT_POSITION_L, 2);
-		res = ReadAX(9, AX_PRESENT_POSITION_L, 2);
-		
-		_delay_ms(2000);
-		
-		Walk();
-		_delay_ms(5000);
+		_delay_ms(wait_delay);
+		for (double step = to; step >= from; step -= step_size) {
+			tiltTo(step);
+			_delay_ms(delay);
+		}
 	}
 }
