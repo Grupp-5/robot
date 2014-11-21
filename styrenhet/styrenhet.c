@@ -7,7 +7,9 @@
 
 #include <avr/io.h>
 #define F_CPU 16000000UL
+#include "ax12.h" // TODO: Skriv en ReadAllServoInfo()
 #include "servo.h"
+#include "motion.h"
 #include <util/delay.h>
 
 int main(void)
