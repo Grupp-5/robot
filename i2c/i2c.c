@@ -64,10 +64,10 @@ void master_init(uint32_t f_cpu, uint32_t bitrate) {
 	                 (1<<TWEN));
 }
 
-void slave_init(Data(*prepare_data)(), void(*interpret_data)(Data), uint8_t slave_address) {
+void slave_init(Bus_data_union(*prepare_data)(), void(*interpret_data)(Bus_data_union), uint8_t slave_address) {
 	// Ställer in de globala funktionspekarna
-	prepare_data_func = prepare_data;
-	interpret_data_func = interpret_data;
+	prepare_data_func = (Data(*)(void))prepare_data;
+	interpret_data_func = (void(*)(Data))interpret_data;
 
 	TWAR = (slave_address << 1);
 	TWCR = (1<<TWEA) | (1<<TWEN) | (1<<TWIE);
