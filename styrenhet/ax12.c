@@ -43,7 +43,7 @@ char uart_getchar() {
 	// Vänta tills data existerar. Eller om det tar för lång tid, skicka
 	// tillbaka ett error.
 	// TODO: Satte bara 50000 för att det kändes bra. Timeouts? Konstant nånstans?
-	uint16_t i=500;
+	volatile uint16_t i=500;
 	do {
 		if (UCSR0A & (1<<RXC0)) return UDR0;
 	} while(--i);
