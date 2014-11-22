@@ -43,18 +43,54 @@ Matrix MIRROR_XY = {
 #define O_X_OFFSET 5.55
 #define O_Y_OFFSET 12
 
-#define start_z -8
 
-// "Världs"-koordinater, sett från mitt på roboten.
-// Positiva Y är framåt, positiva X är åt höger.
-Vector INITIAL_POSITIONS[6] = {
-	{-20,  20, start_z},
-	{ 20,  20, start_z},
-	{-20,   0, start_z},
-	{ 20,   0, start_z},
-	{-20, -20, start_z},
-	{ 20, -20, start_z}
+
+#define LEFT_LEGS 0
+#define RIGHT_LEGS 1
+byte TRIPOD[2][3] = {
+	{1, 4, 5},
+	{2, 3, 6}
 };
+
+Vector* translate_set(Vector* from, Vector left, Vector right) {
+	static Vector positions[6];
+
+	// Resetta alla värden
+	for (byte id = 0; id < 6; id++) {
+		positions[id] = from[id];
+	}
+
+	// Gör en translate på benen som specifieras i legs
+	for (byte id = 0; id < 3; id++) {
+		positions[TRIPOD[LEFT_LEGS][id]-1] = v_add(positions[TRIPOD[LEFT_LEGS][id]-1], left);
+	}
+
+	// Gör en translate på benen som specifieras i legs
+	for (byte id = 0; id < 3; id++) {
+		positions[TRIPOD[RIGHT_LEGS][id]-1] = v_add(positions[TRIPOD[RIGHT_LEGS][id]-1], right);
+	}
+	return positions;
+}
+
+Vector* rotate_set(Vector* from, Matrix left, Matrix right)
+{
+	static Vector positions[6];
+
+	// Resetta alla värden
+	for (byte id = 0; id < 6; id++) {
+		positions[id] = from[id];
+	}
+
+	for (byte id = 0; id < 3; id++) {
+		positions[TRIPOD[LEFT_LEGS][id]-1] = m_mul(left, positions[TRIPOD[LEFT_LEGS][id]-1]);
+	}
+
+	for (byte id = 0; id < 3; id++) {
+		positions[TRIPOD[RIGHT_LEGS][id]-1] = m_mul(right, positions[TRIPOD[RIGHT_LEGS][id]-1]);
+	}
+
+	return positions;
+}
 
 // Konverterar världs-koordinater till referens-ramar för varje ben
 Vector world_to_local(byte legid, Vector pos) {
@@ -77,11 +113,11 @@ Vector world_to_local(byte legid, Vector pos) {
 }
 
 // Returnerar start-positionerna roterat runt x-axeln ANGLE radianer
-Vector* get_rotation_at(double angle) {
+Vector* get_rotation_at(Vector* from, double angle) {
 	static Vector positions[6]; // Static för att pekaren returnas
 
 	for (int legid = 0; legid < 6; legid++) {
-		positions[legid] = m_mul(get_rotation_x(angle), INITIAL_POSITIONS[legid]);
+		positions[legid] = m_mul(get_rotation_x(angle), from[legid]);
 	}
 
 	return positions;

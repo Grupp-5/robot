@@ -10,6 +10,7 @@
 #define MOTION_H_
 
 #include "datatypes.h"
+#include "vector_math.h"
 
 void SetLayPosition();
 void SetStartPosition();
@@ -19,6 +20,9 @@ void moveLegTo(byte legid, double x, double y, double z);
 void tiltTo(double angle);
 
 void setStartPosition();
+void setLayPosition();
+void moveLegSet(Vector left, Vector right);
+void takeStep(double speed, double speed_forward, double speed_sideway, double rotation);
 
 #define POS_LEG_UP 823
 #define POS_LEG_DOWN 773

@@ -17,9 +17,11 @@
 #define F 6.6
 #define T 13.3
 
+Vector* translate_set(Vector* initial, Vector left, Vector right);
+Vector* rotate_set(Vector* from, Matrix left, Matrix right);
 Rotation ik(Vector pos);
 Vector fix_leg_vector(Vector pos);
 Vector world_to_local(byte legid, Vector pos);
-Vector* get_rotation_at(double angle);
+Vector* get_rotation_at(Vector* initial, double angle);
 
 #endif /* IK_H_ */
