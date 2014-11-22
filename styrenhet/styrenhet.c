@@ -11,6 +11,7 @@
 #include "servo.h"
 #include "motion.h"
 #include <util/delay.h>
+#include <util/atomic.h>
 #include <common.h>
 #include <modulkom.h>
 #include <avr/interrupt.h>
@@ -27,6 +28,7 @@ Bus_data prepare_data() {
 
 void interpret_data(Bus_data data){
 	data_to_receive = data;
+	/*
 	if(data_to_receive.id == COMMAND_DATA) {
 		if(data_to_receive.data[0] == FORWARD) {
 			forward_speed = 0.5;
@@ -44,19 +46,21 @@ void interpret_data(Bus_data data){
 			forward_speed = 0;
 			turn_speed = 0;
 		}
-	}
+	}*/
 }
 
 
 int main(void)
 {
+	double forward_speed2 = 0;
+	double turn_speed2 = 0;
 	set_as_slave(prepare_data, interpret_data, CONTROL);
 	// Delay för att servona ska hinna starta, typ
 	_delay_ms(10);
 	
 	uart_init();
-	sei();
 
+	sei();
 	
 	// För att manuellt avläsa data för debugging
 	volatile ResponsePacket servo_infos[18];
@@ -67,6 +71,8 @@ int main(void)
 
 	setLayPosition();
 	setStartPosition();
+
+	MCUSR = 0;
 
 	SetSpeedAX(ID_BROADCAST, 1000);
 	SetTorqueAX(ID_BROADCAST, 800);
@@ -79,7 +85,11 @@ int main(void)
 
 	takeStep(speed, 0, 0, 0);
 	while(1) {
-		takeStep(speed, forward_speed, 0, turn_speed);
+		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+			forward_speed2 = forward_speed;
+			turn_speed2 = turn_speed;
+		}
+		takeStep(speed, forward_speed2, 0, turn_speed2);
 		_delay_ms(wait_delay);
 	}
 
