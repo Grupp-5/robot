@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>
@@ -38,7 +38,7 @@
         </dependencies>
       </framework-data>
     </AsfFrameworkConfig>
-    <avrtool>com.atmel.avrdbg.tool.simulator</avrtool>
+    <avrtool>com.atmel.avrdbg.tool.jtagice3plus</avrtool>
     <com_atmel_avrdbg_tool_simulator>
       <ToolOptions>
         <InterfaceProperties>
@@ -62,14 +62,14 @@
           <JtagInstrBitsAfter>4</JtagInstrBitsAfter>
           <JtagSelectedDeviceIndexInChain>
           </JtagSelectedDeviceIndexInChain>
-          <JtagDbgClock>200000</JtagDbgClock>
+          <JtagDbgClock>250000</JtagDbgClock>
           <JtagDaisyChainDevices>
           </JtagDaisyChainDevices>
         </InterfaceProperties>
         <InterfaceName>JTAG</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.jtagice3plus</ToolType>
-      <ToolNumber>J30200013317</ToolNumber>
+      <ToolNumber>J30200009018</ToolNumber>
       <ToolName>JTAGICE3</ToolName>
     </com_atmel_avrdbg_tool_jtagice3plus>
   </PropertyGroup>
@@ -84,12 +84,13 @@
         <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
         <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
         <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
-        <avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.directories.IncludePaths>
           <ListValues>
-            <Value>NDEBUG</Value>
+            <Value>../../common</Value>
+            <Value>../../modulkommunikation</Value>
+            <Value>../../i2c</Value>
           </ListValues>
-        </avrgcc.compiler.symbols.DefSymbols>
-        <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
+        </avrgcc.compiler.directories.IncludePaths>
         <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
         <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
         <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
@@ -98,6 +99,12 @@
             <Value>libm</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
+        <avrgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>NDEBUG</Value>
+          </ListValues>
+        </avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
       </AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
@@ -112,26 +119,49 @@
         <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
         <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
         <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
-        <avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.directories.IncludePaths>
           <ListValues>
-            <Value>DEBUG</Value>
+            <Value>../../common</Value>
+            <Value>../../modulkommunikation</Value>
+            <Value>../../i2c</Value>
           </ListValues>
-        </avrgcc.compiler.symbols.DefSymbols>
-        <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+        </avrgcc.compiler.directories.IncludePaths>
         <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
         <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
-        <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
         <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
         <avrgcc.linker.libraries.Libraries>
           <ListValues>
             <Value>libm</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
+        <avrgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>DEBUG</Value>
+          </ListValues>
+        </avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
         <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
       </AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\i2c\i2c.c">
+      <SubType>compile</SubType>
+      <Link>i2c.c</Link>
+    </Compile>
+    <Compile Include="..\i2c\i2c.h">
+      <SubType>compile</SubType>
+      <Link>i2c.h</Link>
+    </Compile>
+    <Compile Include="..\modulkommunikation\modulkom.c">
+      <SubType>compile</SubType>
+      <Link>modulkom.c</Link>
+    </Compile>
+    <Compile Include="..\modulkommunikation\modulkom.h">
+      <SubType>compile</SubType>
+      <Link>modulkom.h</Link>
+    </Compile>
     <Compile Include="Communication.c">
       <SubType>compile</SubType>
     </Compile>

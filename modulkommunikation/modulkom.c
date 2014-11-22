@@ -5,7 +5,7 @@
  *  Author: emiva760, carth567
  */ 
 
-#include <i2c.h>
+#include "i2c.h"
 #include "modulkom.h"
 
 

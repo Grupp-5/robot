@@ -15,7 +15,9 @@ enum command {
 	LEFT = 0x03,
 	RIGHT = 0x04,
 	STOP = 0x05,
-	START_STOP_TIMER = 0x06
+	START_STOP_TIMER = 0x06,
+	WAIT_FOR_P = 0x07,
+	WAIT_FOR_D = 0x08
 };
 
 #endif /* COMMUNICATION_H_ */

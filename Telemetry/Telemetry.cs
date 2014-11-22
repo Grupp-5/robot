@@ -15,6 +15,8 @@ namespace Telemetry
         public static byte RIGHT = 0x04;
         public static byte STOP = 0x05;
         public static byte START_STOP_TIMER = 0x06;
+        public static byte WAIT_FOR_P = 0x07;
+        public static byte WAIT_FOR_D = 0x08;
 
         private SerialPort connection;
         private long startTime;
@@ -136,8 +138,14 @@ namespace Telemetry
             Serial serial = new Serial(port, 115200, Parity.None, 8, StopBits.One);
 
             Console.WriteLine("Connection established.");
+            System.Threading.Thread.Sleep(500);
+            serial.sendByte(Serial.WAIT_FOR_P);//Alert kommunikatiosenhet that next byte is P
+            System.Threading.Thread.Sleep(500);
             serial.sendByte(P);
             Console.WriteLine("P sent successfully");
+            System.Threading.Thread.Sleep(500);
+            serial.sendByte(Serial.WAIT_FOR_D);//Alert kommunikatiosenhet that next byte is D
+            System.Threading.Thread.Sleep(500);
             serial.sendByte(D);
             Console.WriteLine("D sent successfully");
 

@@ -22,7 +22,11 @@ typedef enum {
 } Device_id;
 
 typedef enum {
-	SENSOR_DATA //... OSV
+	SENSOR_DATA,
+	COMMAND_DATA,
+	P_DATA,
+	D_DATA,
+	PD_DATA //... OSV
 } Data_id;
 
 typedef struct {	// I2C-data. Ignore!
