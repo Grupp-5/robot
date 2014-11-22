@@ -7,6 +7,7 @@
 #include <avr/io.h>
 #include "ax12.h"
 #include <util/delay.h>
+#include <util/atomic.h>
 
 //Globala variabler
 byte checksum;
@@ -145,14 +146,17 @@ ResponsePacket ReadAX(byte id, byte address, byte length) {
 // Skriv till ett 8-bitars register
 ResponsePacket Write8AX(byte id, byte adr, uint8_t value, bool reg) {
 	byte params[2] = {adr, value};
-	SendCmdAX(id, reg ? INST_REG_WRITE : INST_WRITE, 2+2, params);
-
-	// TODO: Receive-mode är ansvarig för att stänga av "send mode"
 	ResponsePacket res;
-	if (id != ID_BROADCAST) {
-		// TODO: Förutsatt att AX_RETURN_LEVEL = 2
-		// Ta emot svar
-		res = ReceiveCmdAX();
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		SendCmdAX(id, reg ? INST_REG_WRITE : INST_WRITE, 2+2, params);
+
+		// TODO: Receive-mode är ansvarig för att stänga av "send mode"
+		if (id != ID_BROADCAST) {
+			// TODO: Förutsatt att AX_RETURN_LEVEL = 2
+			// Ta emot svar
+			res = ReceiveCmdAX();
+		}
 	}
 
 	// TODO: Kolla efter fel
@@ -162,14 +166,16 @@ ResponsePacket Write8AX(byte id, byte adr, uint8_t value, bool reg) {
 // Skriv till ett 16-bitars register
 ResponsePacket Write16AX(byte id, byte adr, uint16_t value, bool reg) {
 	byte params[3] = {adr, value, value >> 8};
-	SendCmdAX(id, reg ? INST_REG_WRITE : INST_WRITE, 2+3, params);
-
-	// TODO: Receive-mode är ansvarig för att stänga av "send mode"
 	ResponsePacket res;
-	if (id != ID_BROADCAST) {
-		// TODO: Förutsatt att AX_RETURN_LEVEL = 2
-		// Ta emot svar
-		res = ReceiveCmdAX();
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		SendCmdAX(id, reg ? INST_REG_WRITE : INST_WRITE, 2+3, params);
+
+		// TODO: Receive-mode är ansvarig för att stänga av "send mode"
+		if (id != ID_BROADCAST) {
+			// TODO: Förutsatt att AX_RETURN_LEVEL = 2
+			// Ta emot svar
+			res = ReceiveCmdAX();
+		}
 	}
 	
 	// TODO: Kolla efter fel

@@ -28,7 +28,6 @@ Bus_data prepare_data() {
 
 void interpret_data(Bus_data data){
 	data_to_receive = data;
-	/*
 	if(data_to_receive.id == COMMAND_DATA) {
 		if(data_to_receive.data[0] == FORWARD) {
 			forward_speed = 0.5;
@@ -46,7 +45,7 @@ void interpret_data(Bus_data data){
 			forward_speed = 0;
 			turn_speed = 0;
 		}
-	}*/
+	}
 }
 
 
@@ -78,7 +77,7 @@ int main(void)
 	SetTorqueAX(ID_BROADCAST, 800);
 
 	uint16_t wait_delay = 10;
-	double speed = 1;
+	double speed = 0.7;
 	//double goal_step_length = 6;
 
 	_delay_ms(3000);
