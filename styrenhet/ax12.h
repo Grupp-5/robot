@@ -1,15 +1,7 @@
 #ifndef _AX12_H_
 #define _AX12_H_
 
-#include <avr/io.h>
-#include <stdbool.h>
-
-typedef unsigned char byte;
-
-#define ON 1
-#define OFF 0
-#define _ON 0 
-#define _OFF 1
+#include "datatypes.h"
 
 // EEPROM
 #define AX_MODEL_NUMBER_L 0
@@ -80,26 +72,11 @@ typedef unsigned char byte;
 
 #define ID_BROADCAST 0xFE
 
-//Hardware Dependent Item 
+//Hardware Dependent Items
+#define F_CPU 16000000UL
 // Default är 1000000bps på AX-12
-
-#ifndef F_CPU
-/* prevent compiler error by supplying a default */
-# warning "F_CPU not defined for ax12.h"
-# define F_CPU 16000000UL
-#endif
-
 #define DEFAULT_BAUD_RATE ((F_CPU) / (16*1000000)-1) //Ska bli 1,000,000 bps på F_CPU Mhz
 
-
-typedef struct {
-	byte id;
-	byte error;
-	byte length;
-	// TODO: 50 är kanske inte optimalt om det allokeras ofta
-	byte params[50];
-	byte checksum;
-} ResponsePacket;
 
 void uart_init (void);
 ResponsePacket PingAX(byte id);

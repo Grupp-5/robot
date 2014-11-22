@@ -88,6 +88,9 @@
         <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
         <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
         <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+        <avrgcc.compiler.warnings.ExtraWarnings>True</avrgcc.compiler.warnings.ExtraWarnings>
+        <avrgcc.compiler.warnings.Undefined>True</avrgcc.compiler.warnings.Undefined>
       </AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
@@ -98,6 +101,21 @@
     <Compile Include="ax12.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="datatypes.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ik.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ik.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motion.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motion.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="servo.c">
       <SubType>compile</SubType>
     </Compile>
@@ -105,6 +123,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="styrenhet.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="vector_math.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="vector_math.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
