@@ -26,10 +26,11 @@ double v_abs(Vector v);
 Vector v_div(Vector v, double s);
 Vector v_mul(Vector v, double s);
 Vector v_normal(Vector v);
-Vector m_mul(double m[3][3], Vector v);
+Vector m_mul(Matrix m, Vector v);
 double (*get_rotation_x(double angle))[3];
 double (*get_rotation_y(double angle))[3];
-double (*get_rotation_z(double angle))[3];
+void make_rotation_z(double m[3][3], double angle);
+double (*get_unit())[3];
 
 
 #endif /* VECTOR_MATH_H_ */

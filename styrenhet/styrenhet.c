@@ -25,36 +25,54 @@ int main(void)
 	for (byte id = 1; id <= 18; id++) {
 		servo_infos[id-1] = ReadAllAX(id);
 	}
-	
-	SetSpeedAX(ID_BROADCAST, 200);
-	SetTorqueAX(ID_BROADCAST, 300);
-	TorqueEnableAX(ID_BROADCAST);
-	
+
+	setLayPosition();
 	setStartPosition();
-	
-	_delay_ms(4000);
-	
-	SetSpeedAX(ID_BROADCAST, 600);
+
+	SetSpeedAX(ID_BROADCAST, 1000);
 	SetTorqueAX(ID_BROADCAST, 800);
-	
-	uint16_t wait_delay = 2000;
-	uint16_t delay = 19;
-	double from = 0;
-	double to = 0.3;
-	double step_size = 0.05;
-	
+
+	uint16_t wait_delay = 10;
+	double speed = 1;
+	//double goal_step_length = 6;
+
+	_delay_ms(3000);
+
+	takeStep(speed, 0, 0, 0);
 	while(1) {
+		takeStep(speed, 0.5, 0, 0);
 		_delay_ms(wait_delay);
-		for (double step = from; step <= to; step += step_size) {
-			tiltTo(step);
-			_delay_ms(delay);
-		}
-		from = -to;
-		
-		_delay_ms(wait_delay);
-		for (double step = to; step >= from; step -= step_size) {
-			tiltTo(step);
-			_delay_ms(delay);
-		}
 	}
+
+	/* // Gå fram och tillbaka
+	// 0->goal_step_length
+	for (double step_length = 0; step_length <= goal_step_length; step_length += 2) {
+		_delay_ms(wait_delay);
+		takeStep(step_size, step_length);
+	}
+	// Gå 5 steg
+	for(uint8_t c = 0; c < 5; c++) {
+		_delay_ms(wait_delay);
+		takeStep(step_size, goal_step_length);
+	}
+	// Börja stanna
+	for (double step_length = goal_step_length; step_length >= 0; step_length -= 2) {
+		_delay_ms(wait_delay);
+		takeStep(step_size, step_length);
+	}
+	for (double step_length = 0; step_length >= -goal_step_length; step_length -= 2) {
+		_delay_ms(wait_delay);
+		takeStep(step_size, step_length);
+	}
+	// gå fem steg baklänges
+	for(uint8_t c = 0; c < 5; c++) {
+		_delay_ms(wait_delay);
+		takeStep(step_size, goal_step_length);
+	}
+	// börja stanna -goal_step_length -> 0
+	for (double step_length = -goal_step_length; step_length <= 0; step_length += 2) {
+		_delay_ms(wait_delay);
+		takeStep(step_size, step_length);
+	}
+	*/
 }

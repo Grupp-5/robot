@@ -77,10 +77,16 @@ double (*get_rotation_y(double angle))[3] {
 	return m;
 }
 
-double (*get_rotation_z(double angle))[3] {
-	static double m[3][3];
+void make_rotation_z(double m[3][3], double angle) {
 	m[0][0] =  cos(angle); m[0][1] = -sin(angle); m[0][2] =  0;
 	m[1][0] =  sin(angle); m[1][1] =  cos(angle); m[1][2] =  0;
 	m[2][0] =           0; m[2][1] =           0; m[2][2] =  1;
+}
+
+double (*get_unit())[3] {
+	static double m[3][3];
+	m[0][0] =  1; m[0][1] = 0; m[0][2] =  0;
+	m[1][0] =  0; m[1][1] = 1; m[1][2] =  0;
+	m[2][0] =  0; m[2][1] = 0; m[2][2] =  1;
 	return m;
 }
