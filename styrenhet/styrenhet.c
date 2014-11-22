@@ -11,13 +11,52 @@
 #include "servo.h"
 #include "motion.h"
 #include <util/delay.h>
+#include <common.h>
+#include <modulkom.h>
+#include <avr/interrupt.h>
+
+Bus_data data_to_send = {0};
+Bus_data data_to_receive = {0};
+
+double forward_speed = 0;
+double turn_speed = 0;
+
+Bus_data prepare_data() {
+	return data_to_send;
+}
+
+void interpret_data(Bus_data data){
+	data_to_receive = data;
+	if(data_to_receive.id == COMMAND_DATA) {
+		if(data_to_receive.data[0] == FORWARD) {
+			forward_speed = 0.5;
+			turn_speed = 0;
+		} else if(data_to_receive.data[0] == BACK){
+			forward_speed = -0.5;
+			turn_speed = 0;
+		} else if(data_to_receive.data[0] == LEFT){
+			forward_speed = 0;
+			turn_speed = -0.5;
+		} else if(data_to_receive.data[0] == RIGHT){
+			forward_speed = 0;
+			turn_speed = 0.5;
+		} else if(data_to_receive.data[0] == STOP){
+			forward_speed = 0;
+			turn_speed = 0;
+		}
+	}
+}
+
 
 int main(void)
 {
+	set_as_slave(prepare_data, interpret_data, CONTROL);
 	// Delay för att servona ska hinna starta, typ
 	_delay_ms(10);
 	
 	uart_init();
+	sei();
+
 	
 	// För att manuellt avläsa data för debugging
 	volatile ResponsePacket servo_infos[18];
@@ -40,7 +79,7 @@ int main(void)
 
 	takeStep(speed, 0, 0, 0);
 	while(1) {
-		takeStep(speed, 0.5, 0, 0);
+		takeStep(speed, forward_speed, 0, turn_speed);
 		_delay_ms(wait_delay);
 	}
 
