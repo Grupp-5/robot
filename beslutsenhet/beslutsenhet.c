@@ -19,9 +19,6 @@ uint8_t P = 5; //Constant for the proportional part
 uint8_t D = 4; //Constant for the derivative part
 uint8_t prevError = 0; //The previous error
 
-volatile uint8_t fleftSensorValue;
-volatile uint8_t frightSensorValue;
-volatile uint8_t fmidSensorValue;
 volatile uint8_t autoMode;
 
 Bus_data data_to_send = {0};
@@ -38,6 +35,19 @@ void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t d
 	send_data(dev_id, master_data_to_send);
 }
 
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double fr;
+		double br;
+		double fl;
+		double f;
+		double bl;
+	};
+} Sensor_data;
+
 int pdAlgoritm(uint8_t distanceRight, uint8_t distanceLeft) {
 	uint8_t error = distanceRight - distanceLeft;
 	uint8_t adjustment = P*error + D*(error - prevError);
@@ -53,51 +63,46 @@ int pdAlgoritm(uint8_t distanceRight, uint8_t distanceLeft) {
 	return adjustment;
 }
 
-void getSensorValues(void) {
-	fleftSensorValue = 0;
-	frightSensorValue = 0;
-	fmidSensorValue = 0;
-}
-
 void makeDecision(void) {
-	getSensorValues();
+	fetch_data(SENSOR, &master_data_to_receive);
+	Sensor_data sensor_data = (Sensor_data)master_data_to_receive;
 	uint8_t commands[1];
-	if(frightSensorValue<150) {
-		if(fleftSensorValue<150) {
-			commands[0] = FORWARD;
-			send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+	if(sensor_data.fr<150) {
+		if(sensor_data.fl<150) {
+			//commands[0] = FORWARD;
+			//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
 		}else {
-			if(fmidSensorValue<30) {
-				commands[0] = LEFT;
-				send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
-				commands[0] = FORWARD;
-				send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+			if(sensor_data.f<30) {
+				//commands[0] = LEFT;
+				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
+				//commands[0] = FORWARD;
+				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
 			}else {
-				if(frightSensorValue<80) {
-					commands[0] = LEFT;
-					send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
-					commands[0] = FORWARD;
-					send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+				if(sensor_data.fr<80) {
+					//commands[0] = LEFT;
+					//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
+					//commands[0] = FORWARD;
+					//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
 				}
 			}
 		}
 	}else {
-		if(fmidSensorValue<30) {
-			commands[0] = RIGHT;
-			send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
-			commands[0] = FORWARD;
-			send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+		if(sensor_data.f<30) {
+			//commands[0] = RIGHT;
+			//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
+			//commands[0] = FORWARD;
+			//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
 		}else {
-			if(fleftSensorValue<80) {
-				commands[0] = RIGHT;
-				send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
-				commands[0] = FORWARD;
-				send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+			if(sensor_data.fl<80) {
+				//commands[0] = RIGHT;
+				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
+				//commands[0] = FORWARD;
+				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
 			}else {
-				commands[0] = STOP_TIMER;
-				send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);//celebrate
-				commands[0] = STOP;
-				send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//stop
+				//commands[0] = STOP_TIMER;
+				//send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);//celebrate
+				//commands[0] = STOP;
+				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//stop
 				
 				autoMode = 0;
 				TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
@@ -116,7 +121,9 @@ ISR(TIMER1_OVF_vect) {
 ISR(TIMER3_OVF_vect) {
 	uint8_t left = 0;
 	uint8_t right = 0;
-	//uint8_t commands[1] = {pdAlgoritm(right, left)};
+	fetch_data(SENSOR, &master_data_to_receive);
+	Sensor_data sensor_data = (Sensor_data)master_data_to_receive;
+	//uint8_t commands[1] = {pdAlgoritm(sensor_data.br, sensor_data.bl)};
 	//send_to_bus(CONTROL, PD_DATA, 1, commands);
 	
 	TCNT3H = 0x80; //Reset Timer3 high register
@@ -138,18 +145,15 @@ void initTimer(void) {
 }
 
 Bus_data prepare_data() {
-	data_to_send.id = COMMAND_DATA;
-	data_to_send.count = 2;
-	data_to_send.data[0] = 13;
 	return data_to_send;
 }
 
 void interpret_data(Bus_data data){
 	uint8_t commands[1];
 	data_to_receive = data;
-	if(data_to_receive.id == P_DATA) {
+	if(data_to_receive.id == SET_P) {
 		P = data_to_receive.data[0];
-	}else if(data_to_receive.id == D_DATA) {
+	}else if(data_to_receive.id == SET_D) {
 		D = data_to_receive.data[0];
 	}else if(data_to_receive.data[0] == CHANGEMODE) {
 		if(autoMode == 0) {//Change mode
@@ -157,13 +161,13 @@ void interpret_data(Bus_data data){
 			TIMSK1 |= (1<<TOIE1);//Enable timer overflow interrupt for Timer1
 			TIMSK3 |= (1<<TOIE3);//Enable timer overflow interrupt for Timer3
 			commands[0] = START_TIMER;
-			send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);
+			//send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);
 		}else {
 			autoMode = 0;
 			TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
 			TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
 			commands[0] = STOP_TIMER;
-			send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);
+			//send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);
 		}
 	}
 }
