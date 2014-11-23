@@ -9,6 +9,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <math.h>
+#include <common.h>
+#include <modulkom.h>
 
 #define IR_COUNT 5
 
@@ -27,6 +29,9 @@ char sensors[IR_COUNT] = {IR_FR, IR_BR, IR_FL, IR_F, IR_BL};
 // TODO: volatile bara för debug
 volatile uint16_t x[IR_COUNT];
 volatile double cm[IR_COUNT];
+
+Bus_data data_to_send = {0};
+Bus_data data_to_receive = {0};
 
 //Interruptrutin för AD omvandlare
 ISR (ADC_vect) {
@@ -129,13 +134,21 @@ ISR (ADC_vect) {
 #define AD_PRESCALE_64  0b110
 #define AD_PRESCALE_128 0b111
 
+Bus_data prepare_data() {
+	return data_to_send;
+}
+
+void interpret_data(Bus_data data){
+	data_to_receive = data;
+}
+
 int main(void) {
 	/* p.241..
 	   The ADC is enabled by setting the ADC Enable bit, ADEN in
 	   ADCSRA. Voltage reference and input channel selections will not
 	   go into effect until ADEN is set.
 	*/
-	
+	set_as_slave(prepare_data, interpret_data, SENSOR);
 	sei(); //Aktivera interrupts
 	// Börja med första sensorn
 	ADMUX |= sensors[current_sensor];
