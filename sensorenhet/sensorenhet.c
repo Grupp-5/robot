@@ -134,7 +134,29 @@ ISR (ADC_vect) {
 #define AD_PRESCALE_64  0b110
 #define AD_PRESCALE_128 0b111
 
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double fr;
+		double br;
+		double fl;
+		double f;
+		double bl;
+	};
+} Sensor_data;
+
 Bus_data prepare_data() {
+	Sensor_data sensor_data;
+	sensor_data.count = command_lengths[SENSOR_DATA];
+	sensor_data.id = SENSOR_DATA;
+	sensor_data.fr = cm[IR_FR];
+	sensor_data.br = cm[IR_BR];
+	sensor_data.fl = cm[IR_FL];
+	sensor_data.f = cm[IR_F];
+	sensor_data.bl = cm[IR_BL];
+	data_to_send = sensor_data.bus_data;
 	return data_to_send;
 }
 
