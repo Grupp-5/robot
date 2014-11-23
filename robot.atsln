@@ -2,20 +2,41 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Atmel Studio Solution File, Format Version 11.00
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "styrenhet", "styrenhet\styrenhet.cproj", "{DCE6C7E3-EE26-4D79-826B-08594B9AD897}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D941BC4C-5050-48B7-896A-77FF917AB811} = {D941BC4C-5050-48B7-896A-77FF917AB811}
+		{CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6} = {CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6}
+	EndProjectSection
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "enkelt_test", "enkelt_test\enkelt_test.cproj", "{4657A208-E112-42EC-AF4A-355E4EE83F70}"
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "kommunikationsenhet", "kommunikationsenhet\kommunikationsenhet.cproj", "{A2B8D1C1-6D38-453F-98D0-7E9A9BFBC71C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D941BC4C-5050-48B7-896A-77FF917AB811} = {D941BC4C-5050-48B7-896A-77FF917AB811}
+		{CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6} = {CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6}
+	EndProjectSection
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "i2c", "i2c\i2c.cproj", "{D941BC4C-5050-48B7-896A-77FF917AB811}"
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "sensorenhet", "sensorenhet\sensorenhet.cproj", "{ECE0EAC8-E073-42DD-A037-D15D091CD74E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D941BC4C-5050-48B7-896A-77FF917AB811} = {D941BC4C-5050-48B7-896A-77FF917AB811}
+		{CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6} = {CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6}
+	EndProjectSection
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "beslutsenhet", "beslutsenhet\beslutsenhet.cproj", "{602E33E7-548F-4520-9640-2DC8CB8C3830}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6} = {CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6}
+	EndProjectSection
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "common", "common\common.cproj", "{E386B43F-C8CA-4D81-8D81-6302F6910B7F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6} = {CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6}
+	EndProjectSection
 EndProject
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "modulkommunikation", "modulkommunikation\modulkommunikation.cproj", "{CCB0E8D8-8CA5-41BF-8A09-FA1AD0AF69E6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D941BC4C-5050-48B7-896A-77FF917AB811} = {D941BC4C-5050-48B7-896A-77FF917AB811}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

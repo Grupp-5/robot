@@ -64,7 +64,7 @@ void master_init(uint32_t f_cpu, uint32_t bitrate) {
 	                 (1<<TWEN));
 }
 
-void slave_init(Bus_data_union(*prepare_data)(), void(*interpret_data)(Bus_data_union), uint8_t slave_address) {
+void slave_init(Data(*prepare_data)(), void(*interpret_data)(Data), uint8_t slave_address) {
 	// Ställer in de globala funktionspekarna
 	prepare_data_func = (Data(*)(void))prepare_data;
 	interpret_data_func = (void(*)(Data))interpret_data;
@@ -266,7 +266,7 @@ Data slave_receive() {
 	volatile Data data = {0};
 	// Hämta så mycket data som går
 	while (1) {
-		if (data.count >= MAX_DATA) {
+		if (data.count >= I2C_MAX_DATA) {
 			SET_BITMASK(TWCR,
 				(1<<TWSTA) | (1<<TWSTO)| (1<<TWINT) | (1<<TWEA),
 				                         (1<<TWINT)            );

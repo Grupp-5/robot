@@ -119,6 +119,11 @@
         <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
         <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
         <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+        <avrgcc.compiler.symbols.DefSymbols>
+          <ListValues>
+            <Value>DEBUG</Value>
+          </ListValues>
+        </avrgcc.compiler.symbols.DefSymbols>
         <avrgcc.compiler.directories.IncludePaths>
           <ListValues>
             <Value>../../common</Value>
@@ -126,42 +131,29 @@
             <Value>../../i2c</Value>
           </ListValues>
         </avrgcc.compiler.directories.IncludePaths>
+        <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
         <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
         <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+        <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
         <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
         <avrgcc.linker.libraries.Libraries>
           <ListValues>
             <Value>libm</Value>
+            <Value>i2c</Value>
+            <Value>modulkommunikation</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
-        <avrgcc.compiler.symbols.DefSymbols>
+        <avrgcc.linker.libraries.LibrarySearchPaths>
           <ListValues>
-            <Value>DEBUG</Value>
+            <Value>../../i2c/Debug</Value>
+            <Value>../../modulkommunikation/Debug</Value>
           </ListValues>
-        </avrgcc.compiler.symbols.DefSymbols>
-        <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
-        <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+        </avrgcc.linker.libraries.LibrarySearchPaths>
         <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
       </AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\i2c\i2c.c">
-      <SubType>compile</SubType>
-      <Link>i2c.c</Link>
-    </Compile>
-    <Compile Include="..\i2c\i2c.h">
-      <SubType>compile</SubType>
-      <Link>i2c.h</Link>
-    </Compile>
-    <Compile Include="..\modulkommunikation\modulkom.c">
-      <SubType>compile</SubType>
-      <Link>modulkom.c</Link>
-    </Compile>
-    <Compile Include="..\modulkommunikation\modulkom.h">
-      <SubType>compile</SubType>
-      <Link>modulkom.h</Link>
-    </Compile>
     <Compile Include="Communication.c">
       <SubType>compile</SubType>
     </Compile>

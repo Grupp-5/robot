@@ -9,9 +9,7 @@
 #define COMMON_H_
 
 #include <avr/io.h>
-
-#define MAX_DATA 255 // maximalt antal data-bytes
-#define SCL_CLOCK  100000L // "bitrate"
+#include <modulkom.h>
 
 // Namn/adress på enheten.
 typedef enum {
@@ -41,24 +39,6 @@ enum command {
 	WAIT_FOR_D = 0x08,
 	START_TIMER = 0x09
 };
-
-typedef struct {	// I2C-data. Ignore!
-	uint8_t count;
-	uint8_t data[MAX_DATA];
-} Data;
-
-
-typedef	struct {	// Data som ska skickas på bussen
-	uint8_t count;
-	Data_id id;
-	uint8_t data[MAX_DATA - 1];
-} Bus_data;
-
-
-typedef union {
-	Bus_data bus_data;
-	Data data;
-} Bus_data_union;
 
 
 

@@ -9,7 +9,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <common.h>
-#include "modulkom.h"
+#include <modulkom.h>
 
 //Set CPU clock
 #define F_CPU 14745600UL
