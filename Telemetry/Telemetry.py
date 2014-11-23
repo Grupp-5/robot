@@ -12,6 +12,7 @@ COMMANDS = {
     'SET_D'       : '\x05',
     'SENSOR_DATA' : '\x06',
     'SET_HEIGHT'  : '\x07',
+    'ROTATION'    : '\x08',
 }
 
 con = None
@@ -38,6 +39,12 @@ def create_height_command(height):
 def create_move_command(forward, side, rotation):
     ret = COMMANDS['MOVE']
     for x in [forward, side, rotation]:
+        ret += struct.pack('f', x)
+    return ret
+
+def create_rotation_command(xrot, yrot):
+    ret = COMMANDS['ROTATION']
+    for x in [xrot, yrot]:
         ret += struct.pack('f', x)
     return ret
 
@@ -80,7 +87,9 @@ _vars = {
     'f_speed' : 0,
     's_speed' : 0,
     'r_speed' : 0,
-    'height'  : 0
+    'height'  : 0,
+    'xrot'    : 0,
+    'yrot'    : 0,
 }
 
 actions = [
@@ -92,6 +101,10 @@ actions = [
      {'action_p' : inc, 'action_n' : dec, 'neither': restore, 'var': 'r_speed', 'step_size': STEP_SIZE}),
     ((K_o, K_l),
      {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'height', 'step_size': 0.05}),
+    ((K_UP, K_DOWN),
+     {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'xrot', 'step_size': 0.05}),
+    ((K_LEFT, K_RIGHT),
+     {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'yrot', 'step_size': 0.05}),
 ]
 
 def command_sender():
@@ -99,6 +112,8 @@ def command_sender():
         con.write(create_move_command(_vars['f_speed'], _vars['s_speed'], _vars['r_speed']))
         time.sleep(0.1)
         con.write(create_height_command(_vars['height']))
+        time.sleep(0.1)
+        con.write(create_rotation_command(_vars['xrot'], _vars['yrot']))
         time.sleep(0.1)
         print _vars['f_speed'], _vars['s_speed'], _vars['r_speed'], _vars['height']
 

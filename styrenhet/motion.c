@@ -43,24 +43,13 @@ void moveLegTo(uint8_t legid, double x, double y, double z)
 // "Världs"-koordinater, sett från mitt på roboten.
 // Positiva Y är framåt, positiva X är åt höger.
 Vector INITIAL_POSITIONS[6] = {
-	{-15,  20, start_z},
-	{ 15,  20, start_z},
+	{-14,  21, start_z},
+	{ 14,  21, start_z},
 	{-23,   0, start_z},
 	{ 23,   0, start_z},
-	{-15, -20, start_z},
-	{ 15, -20, start_z}
+	{-15, -23, start_z},
+	{ 15, -23, start_z}
 };
-
-void tiltTo(double angle) {
-	Vector* positions = get_rotation_at(INITIAL_POSITIONS, angle);
-	for (byte legid = 0; legid < 6; legid++) {
-		positions[legid] = world_to_local(legid+1, positions[legid]);
-	}
-	
-	for (byte legid = 1; legid <= 6; legid++) {
-		moveLegTo(legid, positions[legid-1].x, positions[legid-1].y, positions[legid-1].z);
-	}
-}
 
 
 // Håll foten på marken en halv period
@@ -82,19 +71,23 @@ double rot_step(double x) {
 	return sin(x*2*M_PI);
 }
 
-void stepAt(double at, double step_size_forward, double step_size_side, double rotation, double height_offset) {
-	double step_height = 2;
+void stepAt(double at, double step_size_forward, double step_size_side, double rotation, double height_offset, double xrot, double yrot) {
+	double max_step_height = 2.5;
 	double max_forward_step = 6;
 	double max_side_step = 5;
 	double max_rotation = M_PI_4/3;
 	double max_height_diff = 4;
+	double max_x_rotation = M_PI_4/5;
+	double max_y_rotation = M_PI_4/6;
 
 	// Variabler som ökas/sänks över tid så att inga ryck sker
 	static double
 		left_step_f, right_step_f,
 		left_step_s, right_step_s,
-		cur_rotation, height;
+		cur_rotation, height, step_height,
+		cur_x_rotation, cur_y_rotation;
 	double interpolation = 30;
+	double rot_interpolation = 40;
 
 	// Börja mitt i ett steg
 	at += 0.25;
@@ -103,11 +96,16 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
 	right_step_f = right_step_f + (step_size_forward-right_step_f)/interpolation;
 	left_step_s	 =  left_step_s + (step_size_side-left_step_s)/interpolation;
 	right_step_s = right_step_s + (step_size_side-right_step_s)/interpolation;
-	cur_rotation = cur_rotation + (rotation-cur_rotation)/interpolation;
+	cur_rotation = cur_rotation + (rotation-cur_rotation)/rot_interpolation;
+	cur_x_rotation = cur_x_rotation + (xrot-cur_x_rotation)/rot_interpolation;
+	cur_y_rotation = cur_y_rotation + (yrot-cur_y_rotation)/rot_interpolation;
 	height = height + (height_offset-height)/interpolation;
+	step_height = (sqrt(fabs(left_step_f)) + sqrt(fabs(right_step_s)) + sqrt(fabs(cur_rotation)))*max_step_height;
 
-	Vector* positions = translate_set(
-		INITIAL_POSITIONS,
+	Vector* positions = get_rotation_at(INITIAL_POSITIONS, cur_x_rotation*max_x_rotation, cur_y_rotation*max_y_rotation);
+
+	positions = translate_set(
+		positions,
 		vector(
 			y_step(at)*left_step_s*max_side_step,
 			y_step(at)*left_step_f*max_forward_step,
@@ -136,7 +134,7 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
 	}
 }
 
-/** Ta ett steg
+/** Fortsätt på stege(n/t)
  *
  * För att allt ska funka bra, bör man ta ett steg med 0 på alla
  * parametrar först.
@@ -146,15 +144,22 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
  * \param speed_sideway Steglängd höger och vänster -1.0 till 1.0
  * \param rotation Rotation medsols eller motsols -1.0 till 1.0
  * \param height_offsett Olika höjd på gången -1.0 till 1.0, 1.0 är så högt roboten kan komma
+ * \param xrot Rotation i x-led (luta framåt eller bakåt)
+ * \param yrot Rotation i y-led (luta vänster eller höger)
  */
-void takeStep(double speed, double speed_forward, double speed_sideway, double rotation, double height_offset)
+void takeStep(double speed, double speed_forward, double speed_sideway, double rotation, double height_offset, double xrot, double yrot)
 {
-	double max_speed = 0.04;
+	uint16_t wait_delay = 0;
+	double max_speed = 0.02;
 	double delay = 0;
-	for (double step = 0; step <= 1; step += speed*max_speed) {
-		stepAt(step, speed_forward, speed_sideway, rotation, height_offset);
-		_delay_ms(delay);
-	}
+	static double step = 0;
+
+	step += speed*max_speed;
+
+	if (step > 1) { step = 0; _delay_ms(wait_delay); }
+
+	stepAt(step, speed_forward, speed_sideway, rotation, height_offset, xrot, yrot);
+	_delay_ms(delay);
 }
 
 void setStartPosition() {

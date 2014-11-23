@@ -112,12 +112,12 @@ Vector world_to_local(byte legid, Vector pos) {
 	}
 }
 
-// Returnerar start-positionerna roterat runt x-axeln ANGLE radianer
-Vector* get_rotation_at(Vector* from, double angle) {
+// Returnerar positionerna i from roterat runt x-axeln och y-axeln  ANGLEX/Y radianer
+Vector* get_rotation_at(Vector* from, double anglex, double angley) {
 	static Vector positions[6]; // Static för att pekaren returnas
 
 	for (int legid = 0; legid < 6; legid++) {
-		positions[legid] = m_mul(get_rotation_x(angle), from[legid]);
+		positions[legid] = m_mul(get_rotation_y(angley), m_mul(get_rotation_x(anglex), from[legid]));
 	}
 
 	return positions;
