@@ -20,29 +20,40 @@ Bus_data data_to_send = {0};
 Bus_data data_to_receive = {0};
 
 double forward_speed = 0;
+double side_speed = 0;
 double turn_speed = 0;
 
 Bus_data prepare_data() {
 	return data_to_send;
 }
 
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double forward_speed;
+		double side_speed;
+		double turn_speed;
+	};
+} Move_data;
+
 void interpret_data(Bus_data data){
 	data_to_receive = data;
-	if(data_to_receive.id == COMMAND_DATA) {
-		if(data_to_receive.data[0] == FORWARD) {
-			forward_speed = 0.5;
-			turn_speed = 0;
-		} else if(data_to_receive.data[0] == BACK){
-			forward_speed = -0.5;
-			turn_speed = 0;
-		} else if(data_to_receive.data[0] == LEFT){
+	if(data_to_receive.id == MOVE) {
+		Move_data move_data = (Move_data) data_to_receive;
+		forward_speed = move_data.forward_speed;
+		side_speed = move_data.side_speed;
+		turn_speed = move_data.turn_speed;
+
+		// Balla inte ur under debug, tack
+		if(forward_speed > 1 || forward_speed < -1) {
 			forward_speed = 0;
-			turn_speed = -0.5;
-		} else if(data_to_receive.data[0] == RIGHT){
-			forward_speed = 0;
-			turn_speed = 0.5;
-		} else if(data_to_receive.data[0] == STOP){
-			forward_speed = 0;
+		}
+		if(side_speed > 1 || side_speed < -1) {
+			side_speed = 0;
+		}
+		if(turn_speed > 1 || forward_speed < -1) {
 			turn_speed = 0;
 		}
 	}
@@ -52,6 +63,7 @@ void interpret_data(Bus_data data){
 int main(void)
 {
 	double forward_speed2 = 0;
+	double side_speed2 = 0;
 	double turn_speed2 = 0;
 	set_as_slave(prepare_data, interpret_data, CONTROL);
 	// Delay för att servona ska hinna starta, typ
@@ -86,9 +98,10 @@ int main(void)
 	while(1) {
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 			forward_speed2 = forward_speed;
+			side_speed2 = side_speed;
 			turn_speed2 = turn_speed;
 		}
-		takeStep(speed, forward_speed2, 0, turn_speed2);
+		takeStep(speed, forward_speed2, side_speed2, turn_speed2);
 		_delay_ms(wait_delay);
 	}
 

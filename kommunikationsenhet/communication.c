@@ -7,6 +7,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/atomic.h>
 #include <common.h>
 #include <modulkom.h>
 #include "Communication.h"
@@ -47,36 +48,33 @@ ISR(PCINT0_vect) {
 		}else {
 			autoMode = 0;
 		}
-		uint8_t commands[1] = {CHANGEMODE};
-		send_to_bus(DECISION, COMMAND_DATA, 1, commands);//Tell beslutsenhet to change mode
+		uint8_t data[1] = {autoMode};
+		send_to_bus(which_device[CHANGEMODE], CHANGEMODE, 1, data);//Tell beslutsenhet to change mode
 	}
 }
 
 
 //Data received interrupt
 ISR(USART1_RX_vect) {
-	uint8_t commands[1] = {UDR1};
-	if(autoMode == 1) {
-		if(commands[0] == CHANGEMODE) {//Change mode
-			autoMode = 0;
-			send_to_bus(DECISION, COMMAND_DATA, 1, commands);//Tell beslutsenhet to change mode
+	uint8_t command = UDR1;
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		uint8_t data[MAX_DATA];
+
+		// Vänta på mer data om det är vettigt
+		for (uint8_t c = 0; c < command_lengths[command]; c++) {
+			loop_until_bit_is_set(UCSR1A, RXC1);
+			data[c] = UDR1;
 		}
-	}else {	
-		if(waitForP == 1) {
-			waitForP = 0;
-			send_to_bus(DECISION, P_DATA, 1, commands);//Send D value to beslutsenhet
-		}else if(waitForD == 1) {
-			waitForD = 0;
-			send_to_bus(DECISION, D_DATA, 1, commands);//Send P value to beslutsenhet
-		}else if(commands[0] == CHANGEMODE) {//Change mode
-			autoMode = 1;		
-			send_to_bus(DECISION, COMMAND_DATA, 1, commands);//Tell beslutsenhet to change mode
-		}else if(commands[0] == WAIT_FOR_P) {
-			waitForP = 1;
-		}else if(commands[0] == WAIT_FOR_D) {
-			waitForD = 1;
-		}else {
-			send_to_bus(CONTROL, COMMAND_DATA, 1, commands);
+
+		// Skicka vidare kommandot om det inte var avsett för komm-enheten
+		if (which_device[command] != COMMUNICATION) {
+			send_to_bus(which_device[command],
+			            command,
+			            command_lengths[command],
+			            data);
+		} else {
+			// Ska kommunikationsenheten aldrig göra nåt?
 		}
 	}
 }

@@ -20,26 +20,38 @@ typedef enum {
 } Device_id;
 
 typedef enum {
-	SENSOR_DATA,
-	COMMAND_DATA,
-	P_DATA,
-	D_DATA,
-	PD_DATA //... OSV
+	CHANGEMODE,
+	MOVE,
+	START_TIMER,
+	STOP_TIMER,
+	SET_P,
+	SET_D,
+	SENSOR_DATA
+	// o.s.v..
 } Data_id;
 
-enum command {
-	CHANGEMODE = 0x00,
-	FORWARD = 0x01,
-	BACK = 0x02,
-	LEFT = 0x03,
-	RIGHT = 0x04,
-	STOP = 0x05,
-	STOP_TIMER = 0x06,
-	WAIT_FOR_P = 0x07,
-	WAIT_FOR_D = 0x08,
-	START_TIMER = 0x09
+// Hur mycket data ett paket har
+static uint8_t command_lengths[] = {
+	[CHANGEMODE]  = 1, // 0/1 Av/På
+	[MOVE]        = 4+4+4, // step_forward + step_side + rotation
+	                       // både doubles och floats är tydligen
+	                       // 32 bitar stora.
+	[START_TIMER] = 0,
+	[STOP_TIMER]  = 0,
+	[SET_P]       = 1, // 8-bitars-tal?
+	[SET_D]       = 1,
+	[SENSOR_DATA] = 2*5, // 5 doubles från sensorerna
 };
 
-
+// [Kommando] | ska till | enhet
+static Device_id which_device[] = {
+	[CHANGEMODE]       = DECISION,
+	[MOVE]             = CONTROL,
+	[START_TIMER]      = DECISION,
+	[STOP_TIMER]       = DECISION,
+	[SENSOR_DATA]      = CONTROL,
+	[SET_P]            = DECISION,
+	[SET_D]            = DECISION
+};
 
 #endif /* COMMON_H_ */
