@@ -22,6 +22,7 @@ Bus_data data_to_receive = {0};
 double forward_speed = 0;
 double side_speed = 0;
 double turn_speed = 0;
+double height = 0;
 
 Bus_data prepare_data() {
 	return data_to_send;
@@ -37,6 +38,15 @@ typedef union {
 		double turn_speed;
 	};
 } Move_data;
+
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double height;
+	};
+} Height_data;
 
 void interpret_data(Bus_data data){
 	data_to_receive = data;
@@ -56,6 +66,8 @@ void interpret_data(Bus_data data){
 		if(turn_speed > 1 || forward_speed < -1) {
 			turn_speed = 0;
 		}
+	} else if (data_to_receive.id == SET_HEIGHT) {
+		height = ((Height_data) data_to_receive).height;
 	}
 }
 
@@ -65,6 +77,7 @@ int main(void)
 	double forward_speed2 = 0;
 	double side_speed2 = 0;
 	double turn_speed2 = 0;
+	double height2 = 0;
 	set_as_slave(prepare_data, interpret_data, CONTROL);
 	// Delay för att servona ska hinna starta, typ
 	_delay_ms(10);
@@ -89,19 +102,20 @@ int main(void)
 	SetTorqueAX(ID_BROADCAST, 800);
 
 	uint16_t wait_delay = 10;
-	double speed = 0.7;
+	double speed = 0.75;
 	//double goal_step_length = 6;
 
 	_delay_ms(3000);
 
-	takeStep(speed, 0, 0, 0);
+	takeStep(speed, 0, 0, 0, 0);
 	while(1) {
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 			forward_speed2 = forward_speed;
 			side_speed2 = side_speed;
 			turn_speed2 = turn_speed;
+			height2 = height;
 		}
-		takeStep(speed, forward_speed2, side_speed2, turn_speed2);
+		takeStep(speed, forward_speed2, side_speed2, turn_speed2, height2);
 		_delay_ms(wait_delay);
 	}
 

@@ -22,7 +22,7 @@ void tiltTo(double angle);
 void setStartPosition();
 void setLayPosition();
 void moveLegSet(Vector left, Vector right);
-void takeStep(double speed, double speed_forward, double speed_sideway, double rotation);
+void takeStep(double speed, double speed_forward, double speed_sideway, double rotation, double height_offset);
 
 #define POS_LEG_UP 823
 #define POS_LEG_DOWN 773

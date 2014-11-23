@@ -82,18 +82,19 @@ double rot_step(double x) {
 	return sin(x*2*M_PI);
 }
 
-void stepAt(double at, double step_size_forward, double step_size_side, double rotation) {
-	double step_height = 1;
-	double max_forward_step = 7;
+void stepAt(double at, double step_size_forward, double step_size_side, double rotation, double height_offset) {
+	double step_height = 2;
+	double max_forward_step = 6;
 	double max_side_step = 5;
 	double max_rotation = M_PI_4/3;
+	double max_height_diff = 4;
 
 	// Variabler som ökas/sänks över tid så att inga ryck sker
 	static double
 		left_step_f, right_step_f,
 		left_step_s, right_step_s,
-		cur_rotation;
-	double interpolation = 50;
+		cur_rotation, height;
+	double interpolation = 30;
 
 	// Börja mitt i ett steg
 	at += 0.25;
@@ -103,17 +104,18 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
 	left_step_s	 =  left_step_s + (step_size_side-left_step_s)/interpolation;
 	right_step_s = right_step_s + (step_size_side-right_step_s)/interpolation;
 	cur_rotation = cur_rotation + (rotation-cur_rotation)/interpolation;
+	height = height + (height_offset-height)/interpolation;
 
 	Vector* positions = translate_set(
 		INITIAL_POSITIONS,
 		vector(
 			y_step(at)*left_step_s*max_side_step,
 			y_step(at)*left_step_f*max_forward_step,
-			z_step(at)*step_height),
+			z_step(at)*step_height-height*max_height_diff),
 		vector(
 			y_step(at+0.5)*right_step_s*max_side_step,
 			y_step(at+0.5)*right_step_f*max_forward_step,
-			z_step(at+0.5)*step_height)
+			z_step(at+0.5)*step_height-height*max_height_diff)
 	);
 
 	Matrix left_rotation, right_rotation;
@@ -143,12 +145,14 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
  * \param speed_forward Steglängd framåt och bakåt -1.0 till 1.0
  * \param speed_sideway Steglängd höger och vänster -1.0 till 1.0
  * \param rotation Rotation medsols eller motsols -1.0 till 1.0
+ * \param height_offsett Olika höjd på gången -1.0 till 1.0, 1.0 är så högt roboten kan komma
  */
-void takeStep(double speed, double speed_forward, double speed_sideway, double rotation) {
+void takeStep(double speed, double speed_forward, double speed_sideway, double rotation, double height_offset)
+{
 	double max_speed = 0.04;
 	double delay = 0;
 	for (double step = 0; step <= 1; step += speed*max_speed) {
-		stepAt(step, speed_forward, speed_sideway, rotation);
+		stepAt(step, speed_forward, speed_sideway, rotation, height_offset);
 		_delay_ms(delay);
 	}
 }

@@ -26,7 +26,8 @@ typedef enum {
 	STOP_TIMER,
 	SET_P,
 	SET_D,
-	SENSOR_DATA
+	SENSOR_DATA,
+	SET_HEIGHT
 	// o.s.v..
 } Data_id;
 
@@ -41,6 +42,7 @@ static uint8_t command_lengths[] = {
 	[SET_P]       = 1, // 8-bitars-tal?
 	[SET_D]       = 1,
 	[SENSOR_DATA] = 2*5, // 5 doubles från sensorerna
+	[SET_HEIGHT]  = 4 // 1 double
 };
 
 // [Kommando] | ska till | enhet
@@ -51,7 +53,8 @@ static Device_id which_device[] = {
 	[STOP_TIMER]       = DECISION,
 	[SENSOR_DATA]      = CONTROL,
 	[SET_P]            = DECISION,
-	[SET_D]            = DECISION
+	[SET_D]            = DECISION,
+	[SET_HEIGHT]       = CONTROL
 };
 
 #endif /* COMMON_H_ */
