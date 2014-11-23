@@ -108,19 +108,19 @@ void makeDecision(void) {
 }
 
 ISR(TIMER1_OVF_vect) {
-	makeDecision();
-	TCNT3H = 0x80; //Reset Timer3 high register
-	TCNT3L = 0x00; //Reset Timer3 low register
+	//makeDecision();
+	TCNT1H = 0x80; //Reset Timer1 high register
+	TCNT1L = 0x00; //Reset Timer1 low register
 }
 
 ISR(TIMER3_OVF_vect) {
 	uint8_t left = 0;
 	uint8_t right = 0;
-	uint8_t commands[1] = {pdAlgoritm(right, left)};
-	send_to_bus(CONTROL, PD_DATA, 1, commands);
+	//uint8_t commands[1] = {pdAlgoritm(right, left)};
+	//send_to_bus(CONTROL, PD_DATA, 1, commands);
 	
-	TCNT1H = 0x80; //Reset Timer1 high register
-	TCNT1L = 0x00; //Reset Timer1 low register
+	TCNT3H = 0x80; //Reset Timer3 high register
+	TCNT3L = 0x00; //Reset Timer3 low register
 }
 
 //Initialize the timer interrupt to happen
@@ -137,9 +137,10 @@ void initTimer(void) {
 	TCCR3B = (1<<CS31)|(1<<CS30);//Use clock/64 prescaler
 }
 
-
-
 Bus_data prepare_data() {
+	data_to_send.id = COMMAND_DATA;
+	data_to_send.count = 2;
+	data_to_send.data[0] = 13;
 	return data_to_send;
 }
 
