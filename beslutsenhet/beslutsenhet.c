@@ -10,7 +10,6 @@
 #include <avr/interrupt.h>
 #include <common.h>
 #include "modulkom.h"
-#include "Communication.h"
 
 //Set CPU clock
 #define F_CPU 14745600UL
@@ -95,7 +94,7 @@ void makeDecision(void) {
 				commands[0] = FORWARD;
 				send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
 			}else {
-				commands[0] = START_STOP_TIMER;
+				commands[0] = STOP_TIMER;
 				send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);//celebrate
 				commands[0] = STOP;
 				send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//stop
@@ -145,6 +144,7 @@ Bus_data prepare_data() {
 }
 
 void interpret_data(Bus_data data){
+	uint8_t commands[1];
 	data_to_receive = data;
 	if(data_to_receive.id == P_DATA) {
 		P = data_to_receive.data[0];
@@ -155,12 +155,14 @@ void interpret_data(Bus_data data){
 			autoMode = 1;
 			TIMSK1 |= (1<<TOIE1);//Enable timer overflow interrupt for Timer1
 			TIMSK3 |= (1<<TOIE3);//Enable timer overflow interrupt for Timer3
-			uint8_t commands[1] = {START_STOP_TIMER};
+			commands[0] = START_TIMER;
 			send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);
 		}else {
 			autoMode = 0;
 			TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
 			TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
+			commands[0] = STOP_TIMER;
+			send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);
 		}
 	}
 }

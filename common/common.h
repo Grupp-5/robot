@@ -29,6 +29,19 @@ typedef enum {
 	PD_DATA //... OSV
 } Data_id;
 
+enum command {
+	CHANGEMODE = 0x00,
+	FORWARD = 0x01,
+	BACK = 0x02,
+	LEFT = 0x03,
+	RIGHT = 0x04,
+	STOP = 0x05,
+	STOP_TIMER = 0x06,
+	WAIT_FOR_P = 0x07,
+	WAIT_FOR_D = 0x08,
+	START_TIMER = 0x09
+};
+
 typedef struct {	// I2C-data. Ignore!
 	uint8_t count;
 	uint8_t data[MAX_DATA];
