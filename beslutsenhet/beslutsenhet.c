@@ -94,7 +94,7 @@ void makeDecision(void) {
 		fetch_data(SENSOR, &master_data_to_receive);
 		sensor_data = (Sensor_data)master_data_to_receive;
 	}
-	uint8_t commands[1];
+	
 	if(sensor_data.fr<150) {
 		if(sensor_data.fl<150) {
 
@@ -124,8 +124,10 @@ void makeDecision(void) {
 				//Wait for 90 degree turn, by asking gyro
 				send_move_data(0.5, 0, 0);//go forward
 			}else {
-				//commands[0] = STOP_TIMER;
-				//send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);//celebrate
+				Bus_data stop;
+				stop.id = STOP_TIMER;
+				stop.count =  command_lengths[STOP_TIMER];
+				send_data(which_device[STOP_TIMER], stop);//celebrate
 				send_move_data(0, 0, 0);//stop
 				
 				autoMode = 0;
@@ -166,27 +168,40 @@ Bus_data prepare_data() {
 	return data_to_send;
 }
 
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double constant;
+	};
+} Constant_data;
+
 void interpret_data(Bus_data data){
 	uint8_t commands[1];
 	data_to_receive = data;
+	
 	if(data_to_receive.id == SET_P) {
-		P = data_to_receive.data[0];
+		
+		Constant_data constant_data = (Constant_data)data_to_receive;
+		P = constant_data.constant;
+		
 	}else if(data_to_receive.id == SET_D) {
-		D = data_to_receive.data[0];
-	}else if(data_to_receive.data[0] == CHANGEMODE) {
-		if(autoMode == 0) {//Change mode
-			autoMode = 1;
+		
+		Constant_data constant_data = (Constant_data)data_to_receive;
+		D = constant_data.constant;
+		
+	}else if(data_to_receive.id == CHANGEMODE) {
+		
+		autoMode = data_to_receive.data[0];
+		if(autoMode == 1) {
 			TIMSK1 |= (1<<TOIE1);//Enable timer overflow interrupt for Timer1
 			TIMSK3 |= (1<<TOIE3);//Enable timer overflow interrupt for Timer3
-			commands[0] = START_TIMER;
-			//send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);
 		}else {
-			autoMode = 0;
 			TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
 			TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
-			commands[0] = STOP_TIMER;
-			//send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);
 		}
+		
 	}
 }
 

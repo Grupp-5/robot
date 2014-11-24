@@ -106,14 +106,10 @@ Bus_data prepare_data() {
 
 void interpret_data(Bus_data data){
 	data_to_receive = data;
-	if(data_to_receive.data[0] == STOP_TIMER) {
+	if(data_to_receive.id == STOP_TIMER) {
 		autoMode = 0;
-		USART_Send_Byte(data_to_receive.data[0]);
-	}else if(data_to_receive.data[0] == START_TIMER) {
-		USART_Send_Byte(data_to_receive.data[0]);
-	}else {
-		USART_Send_Byte(*data_to_receive.data);
 	}
+	USART_Send_Byte(*data_to_receive.data);
 }
 
 //Poll for data

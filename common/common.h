@@ -22,7 +22,6 @@ typedef enum {
 typedef enum {
 	CHANGEMODE,
 	MOVE,
-	START_TIMER,
 	STOP_TIMER,
 	SET_P,
 	SET_D,
@@ -38,11 +37,10 @@ static uint8_t command_lengths[] = {
 	[MOVE]        = 4+4+4, // step_forward + step_side + rotation
 	                       // både doubles och floats är tydligen
 	                       // 32 bitar stora.
-	[START_TIMER] = 0,
 	[STOP_TIMER]  = 0,
-	[SET_P]       = 1, // 8-bitars-tal?
-	[SET_D]       = 1,
-	[SENSOR_DATA] = 2*5, // 5 doubles från sensorerna
+	[SET_P]       = 4, // 8-bitars-tal?
+	[SET_D]       = 4,
+	[SENSOR_DATA] = 4*5, // 5 doubles från sensorerna
 	[SET_HEIGHT]  = 4, // 1 double
 	[ROTATION]    = 4+4
 };
@@ -51,8 +49,7 @@ static uint8_t command_lengths[] = {
 static Device_id which_device[] = {
 	[CHANGEMODE]       = DECISION,
 	[MOVE]             = CONTROL,
-	[START_TIMER]      = DECISION,
-	[STOP_TIMER]       = DECISION,
+	[STOP_TIMER]       = COMMUNICATION,
 	[SENSOR_DATA]      = CONTROL,
 	[SET_P]            = DECISION,
 	[SET_D]            = DECISION,
