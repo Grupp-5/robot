@@ -10,16 +10,20 @@
 #include <avr/interrupt.h>
 #include <common.h>
 #include <modulkom.h>
+#include <util/atomic.h>
 
 //Set CPU clock
 #define F_CPU 14745600UL
 
-uint8_t MAX_ADJUSTMENT = 100; //Constant to stop the robot from turning like crazy
-uint8_t P = 5; //Constant for the proportional part
-uint8_t D = 4; //Constant for the derivative part
-uint8_t prevError = 0; //The previous error
+uint8_t MAX_ADJUSTMENT = 1; //Constant to stop the robot from turning like crazy
+double P = 1/30; //Constant for the proportional part
+double D = 1/30; //Constant for the derivative part
+double prevError = 0; //The previous error
 
 volatile uint8_t autoMode;
+volatile uint8_t makeDecisionFlag;
+volatile uint8_t pdFlag;
+
 
 Bus_data data_to_send = {0};
 Bus_data data_to_receive = {0};
@@ -48,9 +52,9 @@ typedef union {
 	};
 } Sensor_data;
 
-int pdAlgoritm(uint8_t distanceRight, uint8_t distanceLeft) {
-	uint8_t error = distanceRight - distanceLeft;
-	uint8_t adjustment = P*error + D*(error - prevError);
+int pdAlgoritm(double distanceRight, double distanceLeft) {
+	double error = distanceRight - distanceLeft;
+	double adjustment = P*error + D*(error - prevError);
 	prevError = error;
 	if(adjustment > MAX_ADJUSTMENT)
 	{
@@ -64,8 +68,11 @@ int pdAlgoritm(uint8_t distanceRight, uint8_t distanceLeft) {
 }
 
 void makeDecision(void) {
-	fetch_data(SENSOR, &master_data_to_receive);
-	Sensor_data sensor_data = (Sensor_data)master_data_to_receive;
+	Sensor_data sensor_data;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		fetch_data(SENSOR, &master_data_to_receive);
+		sensor_data = (Sensor_data)master_data_to_receive;
+	}
 	uint8_t commands[1];
 	if(sensor_data.fr<150) {
 		if(sensor_data.fl<150) {
@@ -113,19 +120,13 @@ void makeDecision(void) {
 }
 
 ISR(TIMER1_OVF_vect) {
-	//makeDecision();
+	makeDecisionFlag = 1;
 	TCNT1H = 0x80; //Reset Timer1 high register
 	TCNT1L = 0x00; //Reset Timer1 low register
 }
 
 ISR(TIMER3_OVF_vect) {
-	uint8_t left = 0;
-	uint8_t right = 0;
-	fetch_data(SENSOR, &master_data_to_receive);
-	Sensor_data sensor_data = (Sensor_data)master_data_to_receive;
-	//uint8_t commands[1] = {pdAlgoritm(sensor_data.br, sensor_data.bl)};
-	//send_to_bus(CONTROL, PD_DATA, 1, commands);
-	
+	pdFlag = 1;
 	TCNT3H = 0x80; //Reset Timer3 high register
 	TCNT3L = 0x00; //Reset Timer3 low register
 }
@@ -176,10 +177,27 @@ int main(void) {
 	set_as_slave(prepare_data, interpret_data, DECISION);
 	set_as_master(F_CPU);
 	
+	makeDecisionFlag = 0;
+	pdFlag = 0;
 	autoMode = 0;
 	initTimer();
 	sei();
     while(1) {
-        
+		
+        if(makeDecisionFlag == 1) {
+			makeDecision();
+			makeDecisionFlag = 0;
+		}
+		
+		if(pdFlag == 1) {
+			Sensor_data sensor_data;
+			ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+				fetch_data(SENSOR, &master_data_to_receive);
+				sensor_data = (Sensor_data)master_data_to_receive;
+			}
+			double adjustment = pdAlgoritm(sensor_data.br, sensor_data.bl);
+			//send_to_bus(CONTROL, PD_DATA, 1, commands);
+			pdFlag = 0;
+		}
     }
 }
