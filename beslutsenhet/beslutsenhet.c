@@ -44,6 +44,27 @@ typedef union {
 	struct {
 		uint8_t count;
 		data_id id;
+		double forward_speed;
+		double side_speed;
+		double turn_speed;
+	};
+} Move_data;
+
+void send_move_data(double forward, double side, double turn) {
+	Move_data move_data;
+	move_data.count = command_lengths[MOVE];
+	move_data.id = MOVE;
+	move_data.forward_speed = forward;
+	move_data.side_speed = side;
+	move_data.turn_speed = turn;
+	send_data(which_device[MOVE], move_data.bus_data);
+}
+
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
 		double fr;
 		double br;
 		double fl;
@@ -76,40 +97,36 @@ void makeDecision(void) {
 	uint8_t commands[1];
 	if(sensor_data.fr<150) {
 		if(sensor_data.fl<150) {
-			//commands[0] = FORWARD;
-			//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+
+			send_move_data(0.5, 0, 0);//go forward
+			
 		}else {
 			if(sensor_data.f<30) {
-				//commands[0] = LEFT;
-				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
-				//commands[0] = FORWARD;
-				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+				send_move_data(0, 0, -0.5);//turn left
+				//Wait for 90 degree turn, by asking gyro
+				send_move_data(0.5, 0, 0);//go forward
 			}else {
 				if(sensor_data.fr<80) {
-					//commands[0] = LEFT;
-					//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
-					//commands[0] = FORWARD;
-					//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+					send_move_data(0, 0, -0.5);//turn left
+					//Wait for 90 degree turn, by asking gyro
+					send_move_data(0.5, 0, 0);//go forward
 				}
 			}
 		}
 	}else {
 		if(sensor_data.f<30) {
-			//commands[0] = RIGHT;
-			//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
-			//commands[0] = FORWARD;
-			//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+			send_move_data(0, 0, 0.5);//turn right
+			//Wait for 90 degree turn, by asking gyro
+			send_move_data(0.5, 0, 0);//go forward
 		}else {
 			if(sensor_data.fl<80) {
-				//commands[0] = RIGHT;
-				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);// 90 left
-				//commands[0] = FORWARD;
-				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//go forward
+				send_move_data(0, 0, 0.5);//turn right
+				//Wait for 90 degree turn, by asking gyro
+				send_move_data(0.5, 0, 0);//go forward
 			}else {
 				//commands[0] = STOP_TIMER;
 				//send_to_bus(COMMUNICATION, COMMAND_DATA, 1, commands);//celebrate
-				//commands[0] = STOP;
-				//send_to_bus(CONTROL, COMMAND_DATA, 1, commands);//stop
+				send_move_data(0, 0, 0);//stop
 				
 				autoMode = 0;
 				TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
@@ -190,13 +207,16 @@ int main(void) {
 		}
 		
 		if(pdFlag == 1) {
+			Move_data move_data;
+			move_data.count = command_lengths[MOVE];
+			move_data.id = MOVE;
 			Sensor_data sensor_data;
 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 				fetch_data(SENSOR, &master_data_to_receive);
 				sensor_data = (Sensor_data)master_data_to_receive;
 			}
 			double adjustment = pdAlgoritm(sensor_data.br, sensor_data.bl);
-			//send_to_bus(CONTROL, PD_DATA, 1, commands);
+			send_move_data(0.5, 0, adjustment);
 			pdFlag = 0;
 		}
     }
