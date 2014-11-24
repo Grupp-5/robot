@@ -6,13 +6,12 @@ import thread
 COMMANDS = {
     'CHANGEMODE'  : '\x00',
     'MOVE'        : '\x01',
-    'START_TIMER' : '\x02',
-    'STOP_TIMER'  : '\x03',
-    'SET_P'       : '\x04',
-    'SET_D'       : '\x05',
-    'SENSOR_DATA' : '\x06',
-    'SET_HEIGHT'  : '\x07',
-    'ROTATION'    : '\x08',
+    'STOP_TIMER'  : '\x02',
+    'SET_P'       : '\x03',
+    'SET_D'       : '\x04',
+    'SENSOR_DATA' : '\x05',
+    'SET_HEIGHT'  : '\x06',
+    'ROTATION'    : '\x07',
 }
 
 con = None
@@ -20,12 +19,13 @@ con = None
 while not con:
     try:
         con = serial.Serial(
-            "COM29",
+            "COM40",
             baudrate=115200,
             parity=serial.PARITY_NONE,
             bytesize=serial.EIGHTBITS,
             stopbits=serial.STOPBITS_ONE)
-    except:
+    except Exception as e:
+        print e
         print "Trying to connect..."
         time.sleep(5)
 
@@ -102,9 +102,9 @@ actions = [
     ((K_o, K_l),
      {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'height', 'step_size': 0.05}),
     ((K_UP, K_DOWN),
-     {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'xrot', 'step_size': 0.05}),
+     {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'xrot', 'step_size': 0.1}),
     ((K_LEFT, K_RIGHT),
-     {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'yrot', 'step_size': 0.05}),
+     {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'yrot', 'step_size': 0.1}),
 ]
 
 def command_sender():
