@@ -57,4 +57,57 @@ static Device_id which_device[] = {
 	[ROTATION]         = CONTROL
 };
 
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double forward_speed;
+		double side_speed;
+		double turn_speed;
+	};
+} Move_data;
+
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double height;
+	};
+} Height_data;
+
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double xrot;
+		double yrot;
+	};
+} Rotate_data;
+
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double fr;
+		double br;
+		double fl;
+		double f;
+		double bl;
+	};
+} Sensor_data;
+
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double constant;
+	};
+} Constant_data;
+
 #endif /* COMMON_H_ */
+

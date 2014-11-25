@@ -30,35 +30,6 @@ Bus_data prepare_data() {
 	return data_to_send;
 }
 
-typedef union {
-	Bus_data bus_data;
-	struct {
-		uint8_t count;
-		data_id id;
-		double forward_speed;
-		double side_speed;
-		double turn_speed;
-	};
-} Move_data;
-
-typedef union {
-	Bus_data bus_data;
-	struct {
-		uint8_t count;
-		data_id id;
-		double height;
-	};
-} Height_data;
-
-typedef union {
-	Bus_data bus_data;
-	struct {
-		uint8_t count;
-		data_id id;
-		double xrot;
-		double yrot;
-	};
-} Rotate_data;
 
 void interpret_data(Bus_data data){
 	data_to_receive = data;

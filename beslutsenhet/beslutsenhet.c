@@ -39,16 +39,6 @@ void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t d
 	send_data(dev_id, master_data_to_send);
 }
 
-typedef union {
-	Bus_data bus_data;
-	struct {
-		uint8_t count;
-		data_id id;
-		double forward_speed;
-		double side_speed;
-		double turn_speed;
-	};
-} Move_data;
 
 void send_move_data(double forward, double side, double turn) {
 	Move_data move_data;
@@ -60,18 +50,6 @@ void send_move_data(double forward, double side, double turn) {
 	send_data(which_device[MOVE], move_data.bus_data);
 }
 
-typedef union {
-	Bus_data bus_data;
-	struct {
-		uint8_t count;
-		data_id id;
-		double fr;
-		double br;
-		double fl;
-		double f;
-		double bl;
-	};
-} Sensor_data;
 
 int pdAlgoritm(double distanceRight, double distanceLeft) {
 	double error = distanceRight - distanceLeft;
@@ -168,17 +146,7 @@ Bus_data prepare_data() {
 	return data_to_send;
 }
 
-typedef union {
-	Bus_data bus_data;
-	struct {
-		uint8_t count;
-		data_id id;
-		double constant;
-	};
-} Constant_data;
-
 void interpret_data(Bus_data data){
-	uint8_t commands[1];
 	data_to_receive = data;
 	
 	if(data_to_receive.id == SET_P) {
@@ -222,9 +190,6 @@ int main(void) {
 		}
 		
 		if(pdFlag == 1) {
-			Move_data move_data;
-			move_data.count = command_lengths[MOVE];
-			move_data.id = MOVE;
 			Sensor_data sensor_data;
 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 				fetch_data(SENSOR, &master_data_to_receive);

@@ -134,19 +134,6 @@ ISR (ADC_vect) {
 #define AD_PRESCALE_64  0b110
 #define AD_PRESCALE_128 0b111
 
-typedef union {
-	Bus_data bus_data;
-	struct {
-		uint8_t count;
-		data_id id;
-		double fr;
-		double br;
-		double fl;
-		double f;
-		double bl;
-	};
-} Sensor_data;
-
 Bus_data prepare_data() {
 	Sensor_data sensor_data;
 	sensor_data.count = command_lengths[SENSOR_DATA];
