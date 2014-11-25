@@ -49,7 +49,7 @@ ISR(PCINT0_vect) {
 			autoMode = 0;
 		}
 		uint8_t data[1] = {autoMode};
-		send_to_bus(which_device[CHANGEMODE], CHANGEMODE, 1, data);//Tell beslutsenhet to change mode
+		send_to_bus(which_device[CHANGEMODE], CHANGEMODE, command_lengths[CHANGEMODE], data);//Tell beslutsenhet to change mode
 	}
 }
 
@@ -147,13 +147,13 @@ int main(void) {
 		while(poll == 0) {}
 			uint8_t nr_of_data = 1;
 			master_data_to_receive.count = nr_of_data + 1;
-			fetch_data(DECISION, &master_data_to_receive);
+			//fetch_data(DECISION, &master_data_to_receive);
 	
 			for(int i = 0; i<nr_of_data; i++)
 			{
-				cli();
-				USART_Send_Byte(master_data_to_receive.data[i]);
-				sei();
+				//cli();
+				//USART_Send_Byte(master_data_to_receive.data[i]);
+				//sei();
 			}
 			poll = 0;
     }

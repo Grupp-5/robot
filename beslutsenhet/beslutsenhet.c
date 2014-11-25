@@ -13,11 +13,11 @@
 #include <util/atomic.h>
 
 //Set CPU clock
-#define F_CPU 14745600UL
+#define F_CPU 8000000UL
 
 uint8_t MAX_ADJUSTMENT = 1; //Constant to stop the robot from turning like crazy
-double P = 1/30; //Constant for the proportional part
-double D = 1/30; //Constant for the derivative part
+double P = 1.0/30.0; //Constant for the proportional part
+double D = 1.0/30.0; //Constant for the derivative part
 double prevError = 0; //The previous error
 
 volatile uint8_t autoMode;
@@ -185,19 +185,20 @@ int main(void) {
     while(1) {
 		
         if(makeDecisionFlag == 1) {
-			makeDecision();
+			//makeDecision();
 			makeDecisionFlag = 0;
 		}
 		
-		if(pdFlag == 1) {
+		//if(pdFlag == 1) {
 			Sensor_data sensor_data;
 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+				master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
 				fetch_data(SENSOR, &master_data_to_receive);
 				sensor_data = (Sensor_data)master_data_to_receive;
 			}
 			double adjustment = pdAlgoritm(sensor_data.br, sensor_data.bl);
-			send_move_data(0.5, 0, adjustment);
+			//send_move_data(0.5, 0, adjustment);
 			pdFlag = 0;
-		}
+		//}
     }
 }

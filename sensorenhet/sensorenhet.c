@@ -136,7 +136,7 @@ ISR (ADC_vect) {
 
 Bus_data prepare_data() {
 	Sensor_data sensor_data;
-	sensor_data.count = command_lengths[SENSOR_DATA];
+	sensor_data.count = command_lengths[SENSOR_DATA] + 2;
 	sensor_data.id = SENSOR_DATA;
 	sensor_data.fr = cm[IR_FR];
 	sensor_data.br = cm[IR_BR];
