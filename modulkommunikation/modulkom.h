@@ -9,7 +9,7 @@
 #define MODULKOM_H_
 
 // Om MAX_DATA ändras måste även I2C_MAX_DATA ändras i i2c.h
-#define MAX_DATA 20 // maximalt antal data-bytes
+#define MAX_DATA 30 // maximalt antal data-bytes
 #define SCL_CLOCK  100000L // "bitrate"
 
 typedef uint8_t data_id ;

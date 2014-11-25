@@ -14,6 +14,8 @@
 
 //Set CPU clock
 #define F_CPU 8000000UL
+#include <util/delay.h>
+
 
 uint8_t MAX_ADJUSTMENT = 1; //Constant to stop the robot from turning like crazy
 double P = 1.0/30.0; //Constant for the proportional part
@@ -190,7 +192,7 @@ int main(void) {
 		}
 		
 		//if(pdFlag == 1) {
-			Sensor_data sensor_data;
+			volatile Sensor_data sensor_data;
 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 				master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
 				fetch_data(SENSOR, &master_data_to_receive);
@@ -200,5 +202,6 @@ int main(void) {
 			//send_move_data(0.5, 0, adjustment);
 			pdFlag = 0;
 		//}
+		_delay_ms(20);
     }
 }
