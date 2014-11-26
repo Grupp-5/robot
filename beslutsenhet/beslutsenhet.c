@@ -8,21 +8,54 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <common.h>
+#include <modulkom.h>
+#include <util/atomic.h>
 
-uint8_t MAX_ADJUSTMENT = 100; //Constant to stop the robot from turning like crazy
-uint8_t P = 5; //Constant for the proportional part
-uint8_t D = 4; //Constant for the derivative part
-uint8_t prevError = 0; //The previous error
+//Set CPU clock
+#define F_CPU 8000000UL
+#include <util/delay.h>
 
-volatile uint8_t fleftSensorValue;
-volatile uint8_t frightSensorValue;
-volatile uint8_t fmidSensorValue;
+
+uint8_t MAX_ADJUSTMENT = 1; //Constant to stop the robot from turning like crazy
+double P = 1.0/30.0; //Constant for the proportional part
+double D = 1.0/30.0; //Constant for the derivative part
+double prevError = 0; //The previous error
+
 volatile uint8_t autoMode;
+volatile uint8_t makeDecisionFlag;
+volatile uint8_t pdFlag;
 
 
-int pdAlgoritm(uint8_t distanceRight, uint8_t distanceLeft) {
-	uint8_t error = distanceRight - distanceLeft;
-	uint8_t adjustment = P*error + D*(error - prevError);
+Bus_data data_to_send = {0};
+Bus_data data_to_receive = {0};
+Bus_data master_data_to_send = {0};
+Bus_data master_data_to_receive = {0};
+	
+void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t data_array[]) {
+	master_data_to_send.id = data_id;
+	master_data_to_send.count = arg_count+2;
+	for(int i = 0; i<arg_count; i++) {
+		master_data_to_send.data[i] = data_array[i];
+	}
+	send_data(dev_id, master_data_to_send);
+}
+
+
+void send_move_data(double forward, double side, double turn) {
+	Move_data move_data;
+	move_data.count = command_lengths[MOVE];
+	move_data.id = MOVE;
+	move_data.forward_speed = forward;
+	move_data.side_speed = side;
+	move_data.turn_speed = turn;
+	send_data(which_device[MOVE], move_data.bus_data);
+}
+
+
+int pdAlgoritm(double distanceRight, double distanceLeft) {
+	double error = distanceRight - distanceLeft;
+	double adjustment = P*error + D*(error - prevError);
 	prevError = error;
 	if(adjustment > MAX_ADJUSTMENT)
 	{
@@ -35,78 +68,140 @@ int pdAlgoritm(uint8_t distanceRight, uint8_t distanceLeft) {
 	return adjustment;
 }
 
+void makeDecision(void) {
+	Sensor_data sensor_data;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		fetch_data(SENSOR, &master_data_to_receive);
+		sensor_data = (Sensor_data)master_data_to_receive;
+	}
+	
+	if(sensor_data.fr<150) {
+		if(sensor_data.fl<150) {
+
+			send_move_data(0.5, 0, 0);//go forward
+			
+		}else {
+			if(sensor_data.f<30) {
+				send_move_data(0, 0, -0.5);//turn left
+				//Wait for 90 degree turn, by asking gyro
+				send_move_data(0.5, 0, 0);//go forward
+			}else {
+				if(sensor_data.fr<80) {
+					send_move_data(0, 0, -0.5);//turn left
+					//Wait for 90 degree turn, by asking gyro
+					send_move_data(0.5, 0, 0);//go forward
+				}
+			}
+		}
+	}else {
+		if(sensor_data.f<30) {
+			send_move_data(0, 0, 0.5);//turn right
+			//Wait for 90 degree turn, by asking gyro
+			send_move_data(0.5, 0, 0);//go forward
+		}else {
+			if(sensor_data.fl<80) {
+				send_move_data(0, 0, 0.5);//turn right
+				//Wait for 90 degree turn, by asking gyro
+				send_move_data(0.5, 0, 0);//go forward
+			}else {
+				Bus_data stop;
+				stop.id = STOP_TIMER;
+				stop.count =  command_lengths[STOP_TIMER];
+				send_data(which_device[STOP_TIMER], stop);//celebrate
+				send_move_data(0, 0, 0);//stop
+				
+				autoMode = 0;
+				TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
+				TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
+			}
+		}
+	}
+}
+
 ISR(TIMER1_OVF_vect) {
-	uint8_t left = 0;
-	uint8_t right = 0;
-	uint8_t adjustment = pdAlgoritm(right, left);
-		
+	makeDecisionFlag = 1;
 	TCNT1H = 0x80; //Reset Timer1 high register
 	TCNT1L = 0x00; //Reset Timer1 low register
 }
 
 ISR(TIMER3_OVF_vect) {
-	makeDecision();
+	pdFlag = 1;
 	TCNT3H = 0x80; //Reset Timer3 high register
 	TCNT3L = 0x00; //Reset Timer3 low register
 }
 
-//Initialize the timer interrupts to happen
+//Initialize the timer interrupt to happen
 //approximately once per second 
 void initTimer(void) {
-	TIMSK1 = (1<<TOIE1);//Enable timer overflow interrupt for Timer1
+	//TIMSK1 = (1<<TOIE1);//Enable timer overflow interrupt for Timer1
 	TCNT1H = 0x80; //Initialize Timer1 high register
 	TCNT1L = 0x00; //Initialize Timer1 low register
 	TCCR1B = (1<<CS11)|(1<<CS10);//Use clock/64 prescaler
 	
-	TIMSK3 = (1<<TOIE3);//Enable timer overflow interrupt for Timer3
+	//TIMSK3 = (1<<TOIE3);//Enable timer overflow interrupt for Timer3
 	TCNT3H = 0x00; //Initialize Timer3 high register
 	TCNT3L = 0x00; //Initialize Timer3 low register
 	TCCR3B = (1<<CS31)|(1<<CS30);//Use clock/64 prescaler
 }
 
-void getSensorValues(void) {
-	fleftSensorValue = 0;
-	frightSensorValue = 0;
-	fmidSensorValue = 0;
+Bus_data prepare_data() {
+	return data_to_send;
 }
 
-void makeDecision(void) {
-	getSensorValues();
+void interpret_data(Bus_data data){
+	data_to_receive = data;
 	
-	if(frightSensorValue<150) {
-		if(fleftSensorValue<150) {
-			//go forward
+	if(data_to_receive.id == SET_P) {
+		
+		Constant_data constant_data = (Constant_data)data_to_receive;
+		P = constant_data.constant;
+		
+	}else if(data_to_receive.id == SET_D) {
+		
+		Constant_data constant_data = (Constant_data)data_to_receive;
+		D = constant_data.constant;
+		
+	}else if(data_to_receive.id == CHANGEMODE) {
+		
+		autoMode = data_to_receive.data[0];
+		if(autoMode == 1) {
+			TIMSK1 |= (1<<TOIE1);//Enable timer overflow interrupt for Timer1
+			TIMSK3 |= (1<<TOIE3);//Enable timer overflow interrupt for Timer3
 		}else {
-			if(fmidSensorValue<30) {
-				//turn 90 left
-				//go forward
-			}else {
-				if(frightSensorValue<80) {
-					//turn 90 lef
-					//go forward
-				}
-			}
+			TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
+			TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
 		}
-	}else {
-		if(fmidSensorValue<30) {
-			//turn 90 right
-			//go forward
-		}else {
-			if(fleftSensorValue<80) {
-				//turn 90 right
-				//go forward
-			}else {
-				//celebrate
-			}	
-		}
+		
 	}
 }
 
 int main(void) {
+	set_as_slave(prepare_data, interpret_data, DECISION);
+	set_as_master(F_CPU);
+	
+	makeDecisionFlag = 0;
+	pdFlag = 0;
 	autoMode = 0;
 	initTimer();
 	sei();
     while(1) {
-        
+		
+        if(makeDecisionFlag == 1) {
+			//makeDecision();
+			makeDecisionFlag = 0;
+		}
+		
+		//if(pdFlag == 1) {
+			volatile Sensor_data sensor_data;
+			ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+				master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
+				fetch_data(SENSOR, &master_data_to_receive);
+				sensor_data = (Sensor_data)master_data_to_receive;
+			}
+			double adjustment = pdAlgoritm(sensor_data.br, sensor_data.bl);
+			//send_move_data(0.5, 0, adjustment);
+			pdFlag = 0;
+		//}
+		_delay_ms(20);
     }
 }

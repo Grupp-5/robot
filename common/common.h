@@ -9,9 +9,7 @@
 #define COMMON_H_
 
 #include <avr/io.h>
-
-#define MAX_DATA 255 // maximalt antal data-bytes
-#define SCL_CLOCK  100000L // "bitrate"
+#include <modulkom.h>
 
 // Namn/adress på enheten.
 typedef enum {
@@ -22,27 +20,94 @@ typedef enum {
 } Device_id;
 
 typedef enum {
-	SENSOR_DATA //... OSV
+	CHANGEMODE,
+	MOVE,
+	STOP_TIMER,
+	SET_P,
+	SET_D,
+	SENSOR_DATA,
+	SET_HEIGHT,
+	ROTATION
+	// o.s.v..
 } Data_id;
 
-typedef struct {	// I2C-data. Ignore!
-	uint8_t count;
-	uint8_t data[MAX_DATA];
-} Data;
+// Hur mycket data ett paket har
+static uint8_t command_lengths[] = {
+	[CHANGEMODE]  = 1, // 0/1 Av/På
+	[MOVE]        = 4+4+4, // step_forward + step_side + rotation
+	                       // både doubles och floats är tydligen
+	                       // 32 bitar stora.
+	[STOP_TIMER]  = 0,
+	[SET_P]       = 4, // 8-bitars-tal?
+	[SET_D]       = 4,
+	[SENSOR_DATA] = 4*5, // 5 doubles från sensorerna
+	[SET_HEIGHT]  = 4, // 1 double
+	[ROTATION]    = 4+4
+};
 
-
-typedef	struct {	// Data som ska skickas på bussen
-	uint8_t count;
-	Data_id id;
-	uint8_t data[MAX_DATA - 1];
-} Bus_data;
-
+// [Kommando] | ska till | enhet
+static Device_id which_device[] = {
+	[CHANGEMODE]       = DECISION,
+	[MOVE]             = CONTROL,
+	[STOP_TIMER]       = COMMUNICATION,
+	[SENSOR_DATA]      = CONTROL,
+	[SET_P]            = DECISION,
+	[SET_D]            = DECISION,
+	[SET_HEIGHT]       = CONTROL,
+	[ROTATION]         = CONTROL
+};
 
 typedef union {
 	Bus_data bus_data;
-	Data data;
-} Bus_data_union;
+	struct {
+		uint8_t count;
+		data_id id;
+		double forward_speed;
+		double side_speed;
+		double turn_speed;
+	};
+} Move_data;
 
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double height;
+	};
+} Height_data;
 
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double xrot;
+		double yrot;
+	};
+} Rotate_data;
+
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double fr;
+		double br;
+		double fl;
+		double f;
+		double bl;
+	};
+} Sensor_data;
+
+typedef union {
+	Bus_data bus_data;
+	struct {
+		uint8_t count;
+		data_id id;
+		double constant;
+	};
+} Constant_data;
 
 #endif /* COMMON_H_ */
+

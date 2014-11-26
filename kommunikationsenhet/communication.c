@@ -7,6 +7,9 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/atomic.h>
+#include <common.h>
+#include <modulkom.h>
 #include "Communication.h"
 
 //Set CPU clock
@@ -16,10 +19,22 @@
 #define USART_BAUDRATE 115200
 #define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 16UL))) - 1)
 volatile uint8_t autoMode;
+volatile uint8_t waitForP;
+volatile uint8_t waitForD;
+volatile uint8_t poll;
 
-void sendToBus(uint8_t command)
-{
+Bus_data data_to_send = {0};
+Bus_data data_to_receive = {0};
+Bus_data master_data_to_send = {0};
+volatile Bus_data master_data_to_receive = {0};
 	
+void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t data_array[]) {
+	master_data_to_send.id = data_id;
+	master_data_to_send.count = arg_count+2;
+	for(int i = 0; i<arg_count; i++) {
+		master_data_to_send.data[i] = data_array[i];
+	}
+	send_data(dev_id, master_data_to_send);
 }
 
 //Interrupt routine for PCINT0
@@ -33,7 +48,8 @@ ISR(PCINT0_vect) {
 		}else {
 			autoMode = 0;
 		}
-		sendToBus(CHANGEMODE);//Tell beslutsenhet to change mode
+		uint8_t data[1] = {autoMode};
+		send_to_bus(which_device[CHANGEMODE], CHANGEMODE, command_lengths[CHANGEMODE], data);//Tell beslutsenhet to change mode
 	}
 }
 
@@ -41,16 +57,25 @@ ISR(PCINT0_vect) {
 //Data received interrupt
 ISR(USART1_RX_vect) {
 	uint8_t command = UDR1;
-	if(autoMode == 1) {
-		if(command == CHANGEMODE) {//Change mode
-			autoMode = 0;
-			sendToBus(command);//Tell beslutsenhet to change mode
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		uint8_t data[MAX_DATA];
+
+		// Vänta på mer data om det är vettigt
+		for (uint8_t c = 0; c < command_lengths[command]; c++) {
+			loop_until_bit_is_set(UCSR1A, RXC1);
+			data[c] = UDR1;
 		}
-	}else {	
-		if(command == CHANGEMODE) {//Change mode
-			autoMode = 1;
+
+		// Skicka vidare kommandot om det inte var avsett för komm-enheten
+		if (which_device[command] != COMMUNICATION) {
+			send_to_bus(which_device[command],
+			            command,
+			            command_lengths[command],
+			            data);
+		} else {
+			// Ska kommunikationsenheten aldrig göra nåt?
 		}
-		sendToBus(command);
 	}
 }
 
@@ -75,15 +100,61 @@ void USART_Send_Byte(uint8_t sendData) {
 	UDR1 = sendData; //Puts the data into the buffer, sends the data
 }
 
+Bus_data prepare_data() {
+	return data_to_send;
+}
+
+void interpret_data(Bus_data data){
+	data_to_receive = data;
+	if(data_to_receive.id == STOP_TIMER) {
+		autoMode = 0;
+	}
+	USART_Send_Byte(*data_to_receive.data);
+}
+
+//Poll for data
+ISR(TIMER1_OVF_vect) {
+	TCNT1H = 0x80; //Reset Timer1 high register
+	TCNT1L = 0x00; //Reset Timer1 low register
+	poll = 1;
+}
+
+//Initialize the timer interrupt to happen
+//approximately once per second
+void initTimer(void) {
+	TIMSK1 = (1<<TOIE1);//Enable timer overflow interrupt for Timer1
+	TCNT1H = 0x80; //Initialize Timer1 high register
+	TCNT1L = 0x00; //Initialize Timer1 low register
+	TCCR1B = (1<<CS11)|(1<<CS10);//Use clock/64 prescaler
+}
+
 int main(void) {
+	set_as_slave(prepare_data, interpret_data, COMMUNICATION);
+	set_as_master(F_CPU);
+	
+	poll = 0;
 	autoMode = 0;
+	waitForP = 0;
+	waitForD = 0;
 	DDRD = (1<<DDD3)|(1<<DDD4);//Set pin directions
 	PCMSK0 = (1<<PCINT0);//Change pin mask
 	PCICR = (1<<PCIE0);//Enable pin change interrupts
 	UCSR1B |= (1<<RXCIE1);//Enable USART receive interrupt
 	USART_Init();//Initialize USART1
+	initTimer();
 	sei();//Enable interrupts in status register
     while(1) {
-		
+		while(poll == 0) {}
+			uint8_t nr_of_data = 1;
+			master_data_to_receive.count = nr_of_data + 1;
+			//fetch_data(DECISION, &master_data_to_receive);
+	
+			for(int i = 0; i<nr_of_data; i++)
+			{
+				//cli();
+				//USART_Send_Byte(master_data_to_receive.data[i]);
+				//sei();
+			}
+			poll = 0;
     }
 }

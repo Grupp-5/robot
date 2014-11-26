@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>
@@ -30,8 +30,7 @@
       <ToolOptions>
         <InterfaceProperties>
         </InterfaceProperties>
-        <InterfaceName>
-        </InterfaceName>
+        <InterfaceName>JTAG</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.simulator</ToolType>
       <ToolNumber>
@@ -40,14 +39,14 @@
     </com_atmel_avrdbg_tool_simulator>
     <preserveEEPROM>true</preserveEEPROM>
     <AsfFrameworkConfig>
-      <framework-data xmlns="">
+      <framework-data>
         <options />
         <configurations />
         <files />
         <documentation help="" />
         <offline-documentation help="" />
         <dependencies>
-          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.19.0" />
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.6.0" />
         </dependencies>
       </framework-data>
     </AsfFrameworkConfig>
@@ -86,8 +85,30 @@
         <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
         <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
         <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+        <avrgcc.compiler.directories.IncludePaths>
+          <ListValues>
+            <Value>../../common</Value>
+            <Value>../../modulkommunikation</Value>
+          </ListValues>
+        </avrgcc.compiler.directories.IncludePaths>
         <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
         <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+        <avrgcc.compiler.warnings.ExtraWarnings>True</avrgcc.compiler.warnings.ExtraWarnings>
+        <avrgcc.compiler.warnings.Undefined>True</avrgcc.compiler.warnings.Undefined>
+        <avrgcc.linker.libraries.Libraries>
+          <ListValues>
+            <Value>modulkommunikation</Value>
+            <Value>i2c</Value>
+          </ListValues>
+        </avrgcc.linker.libraries.Libraries>
+        <avrgcc.linker.libraries.LibrarySearchPaths>
+          <ListValues>
+            <Value>../../modulkommunikation/Debug</Value>
+            <Value>../../i2c/Debug</Value>
+          </ListValues>
+        </avrgcc.linker.libraries.LibrarySearchPaths>
       </AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
@@ -98,6 +119,21 @@
     <Compile Include="ax12.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="datatypes.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ik.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ik.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motion.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="motion.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="servo.c">
       <SubType>compile</SubType>
     </Compile>
@@ -105,6 +141,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="styrenhet.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="vector_math.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="vector_math.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

@@ -5,16 +5,19 @@
  *  Author: emiva760, carth567
  */ 
 
-#include <i2c.h>
+#include "i2c.h"
 #include "modulkom.h"
 
-
-
-/*void set_as_slave(Data(*prepare_data)(), void(*interpret_data)(Data), Device_id id) {
-	slave_init(prepare_data, interpret_data, id);
-}*/
-void set_as_slave(Bus_data(*prepare_data)(), void(*interpret_data)(Bus_data), Device_id id) {
-	slave_init((Bus_data_union(*)(void))prepare_data, (void(*)(Bus_data_union))interpret_data, id);
+void set_as_slave(Bus_data(*prepare_data)(), void(*interpret_data)(Bus_data), data_id id) {
+	slave_init(
+		// Gör om `Bus_data prepare_data()` pekaren till en funktion
+		// som returnerar Data
+		(Data (*)()) prepare_data,
+		// Gör om `void interpret_data(Bus_data)` pekaren till en
+		// funktion som tar Data som inparameter
+		(void (*)(Data)) interpret_data,
+		id
+   );
 }
 
 
@@ -22,10 +25,15 @@ void set_as_master(uint32_t f_cpu) {
 	master_init(f_cpu, SCL_CLOCK);
 }
 
-void send_data(Device_id id, Bus_data bus_data) {
+typedef union {
+	Bus_data bus_data;
+	Data data;
+} Bus_data_union;
+
+void send_data(device_id id, Bus_data bus_data) {
 	master_transmit(id, ((Bus_data_union)bus_data).data);
 }
 
-void fetch_data(Device_id id, Bus_data *bus_data) {
+void fetch_data(device_id id, Bus_data *bus_data) {
 	master_receive(id, &((Bus_data_union*)bus_data)->data);
 }
