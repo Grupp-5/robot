@@ -11,20 +11,22 @@
 #include <common.h>
 #include <modulkom.h>
 #include <util/atomic.h>
+#include <stdlib.h>
 
 //Set CPU clock
 #define F_CPU 8000000UL
 #include <util/delay.h>
 
 
-uint8_t MAX_ADJUSTMENT = 1; //Constant to stop the robot from turning like crazy
-double P = 1.0/30.0; //Constant for the proportional part
+double MAX_ADJUSTMENT = 0.3; //Constant to stop the robot from turning like crazy
+double P = 1.0/60.0; //Constant for the proportional part
 double D = 1.0/30.0; //Constant for the derivative part
 double prevError = 0; //The previous error
 
 volatile uint8_t autoMode;
 volatile uint8_t makeDecisionFlag;
 volatile uint8_t pdFlag;
+volatile uint8_t turn;
 
 
 Bus_data data_to_send = {0};
@@ -44,7 +46,7 @@ void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t d
 
 void send_move_data(double forward, double side, double turn) {
 	Move_data move_data;
-	move_data.count = command_lengths[MOVE];
+	move_data.count = command_lengths[MOVE]+2;
 	move_data.id = MOVE;
 	move_data.forward_speed = forward;
 	move_data.side_speed = side;
@@ -53,19 +55,46 @@ void send_move_data(double forward, double side, double turn) {
 }
 
 
-int pdAlgoritm(double distanceRight, double distanceLeft) {
+void pdAlgoritm(double distanceRight, double distanceLeft) {
 	double error = distanceRight - distanceLeft;
-	double adjustment = P*error + D*(error - prevError);
+	double turn_adjustment = 0;
+	double side_adjustment = 0;
+	if(turn) {
+		turn_adjustment =  D*(error - prevError);
+		
+		if(turn_adjustment > MAX_ADJUSTMENT)
+		{
+			turn_adjustment = MAX_ADJUSTMENT;
+		}
+		else if(turn_adjustment < -MAX_ADJUSTMENT)
+		{
+			turn_adjustment = -MAX_ADJUSTMENT;
+		}
+		
+		if(abs(turn_adjustment) < 0.02)
+		{
+			turn = 0;
+		}
+	} else {
+		side_adjustment = P*error;
+		if(side_adjustment > MAX_ADJUSTMENT)
+		{
+			side_adjustment = MAX_ADJUSTMENT;
+		}
+		else if(side_adjustment < -MAX_ADJUSTMENT)
+		{
+			side_adjustment = -MAX_ADJUSTMENT;
+		}
+		
+		if(abs(side_adjustment) < 0.08)
+		{
+			turn = 1;
+		}
+	}
+	
 	prevError = error;
-	if(adjustment > MAX_ADJUSTMENT)
-	{
-		adjustment = MAX_ADJUSTMENT;
-	}
-	else if(adjustment < -MAX_ADJUSTMENT)
-	{
-		adjustment = -MAX_ADJUSTMENT;
-	}
-	return adjustment;
+	
+	send_move_data(0.5, side_adjustment, turn_adjustment);
 }
 
 void makeDecision(void) {
@@ -120,13 +149,13 @@ void makeDecision(void) {
 
 ISR(TIMER1_OVF_vect) {
 	makeDecisionFlag = 1;
-	TCNT1H = 0x80; //Reset Timer1 high register
+	TCNT1H = 0xB0; //Reset Timer1 high register
 	TCNT1L = 0x00; //Reset Timer1 low register
 }
 
 ISR(TIMER3_OVF_vect) {
 	pdFlag = 1;
-	TCNT3H = 0x80; //Reset Timer3 high register
+	TCNT3H = 0xB0; //Reset Timer3 high register
 	TCNT3L = 0x00; //Reset Timer3 low register
 }
 
@@ -182,6 +211,7 @@ int main(void) {
 	makeDecisionFlag = 0;
 	pdFlag = 0;
 	autoMode = 0;
+	turn = 1;
 	initTimer();
 	sei();
     while(1) {
@@ -191,17 +221,17 @@ int main(void) {
 			makeDecisionFlag = 0;
 		}
 		
-		//if(pdFlag == 1) {
+		if(pdFlag == 1) {
 			volatile Sensor_data sensor_data;
 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 				master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
 				fetch_data(SENSOR, &master_data_to_receive);
 				sensor_data = (Sensor_data)master_data_to_receive;
 			}
-			double adjustment = pdAlgoritm(sensor_data.br, sensor_data.bl);
-			//send_move_data(0.5, 0, adjustment);
+			pdAlgoritm(sensor_data.br, sensor_data.bl);
 			pdFlag = 0;
-		//}
+		}
+		
 		_delay_ms(20);
     }
 }
