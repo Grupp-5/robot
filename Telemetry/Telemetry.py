@@ -51,11 +51,12 @@ def create_rotation_command(xrot, yrot):
         ret += struct.pack('f', x)
     return ret
 
-import sys, pygame
+import math as m
+import sys, pygame, pygame.gfxdraw
 from pygame.locals import *
 
 pygame.init()
-size = width, height = 320, 240
+size = width, height = 1024, 764
 black = 0, 0, 0
 red = 200, 0, 0
 screen = pygame.display.set_mode(size)
@@ -113,35 +114,67 @@ actions = [
 def command_sender():
     while 1:
         con.write(create_move_command(_vars['f_speed'], _vars['s_speed'], _vars['r_speed']))
-        time.sleep(0.1)
+        time.sleep(0.05)
         con.write(create_height_command(_vars['height']))
-        time.sleep(0.1)
+        time.sleep(0.05)
         con.write(create_rotation_command(_vars['xrot'], _vars['yrot']))
-        time.sleep(0.1)
+        time.sleep(0.05)
         print _vars['f_speed'], _vars['s_speed'], _vars['r_speed'], _vars['height']
 
 t = thread.start_new_thread(command_sender, ())
 
+j = pygame.joystick.Joystick(0)
+j.init()
+
+print j.get_numaxes()
+
+MAX_MARGIN = 0.05
 
 while 1:
+    pygame.event.pump()
     delta_t = clock.tick(FRAMES_PER_SECOND)
     screen.fill(black)
 
-    keys = pygame.key.get_pressed()
+    # for i in range(6):
+    #     print i, j.get_axis(i)
 
-    for key, _actions in actions:
-        if not keys[key[0]] and not keys[key[1]]:
-            _actions['neither'](_actions['var'], _actions['step_size'])
-        if keys[key[0]]:
-            _actions['action_p'](_actions['var'], _actions['step_size'])
-        if keys[key[1]]:
-            _actions['action_n'](_actions['var'], _actions['step_size'])
+
+    _vars['f_speed'] = -j.get_axis(1)
+    _vars['s_speed'] = j.get_axis(0)
+    _vars['yrot'] = -j.get_axis(2)
+    _vars['xrot'] = -j.get_axis(3)
+
+    _vars['r_speed'] = (j.get_axis(4)+1)/2 -(j.get_axis(5)+1)/2
+
+    for v in ['f_speed', 's_speed', 'r_speed', 'xrot', 'yrot']:
+        if abs(_vars[v]) < MAX_MARGIN:
+            _vars[v] = 0
+
+    #Keys = pygame.key.get_pressed()
+
+    # for key, _actions in actions:
+    #     if not keys[key[0]] and not keys[key[1]]:
+    #         _actions['neither'](_actions['var'], _actions['step_size'])
+    #     if keys[key[0]]:
+    #         _actions['action_p'](_actions['var'], _actions['step_size'])
+    #     if keys[key[1]]:
+    #         _actions['action_n'](_actions['var'], _actions['step_size'])
 
     draw_at = 10
     for key, value in _vars.iteritems():
         draw_height = -value*height/2
         pygame.draw.rect(screen, red, (draw_at, height/2, 10, draw_height))
         draw_at += 20
+
+
+    theta = m.atan2(_vars['f_speed'], _vars['s_speed'])
+    pygame.draw.aaline(screen, red, (width/2, height/2),
+                       (width/2+m.cos(theta)*200*abs(_vars['s_speed']),
+                        height/2-m.sin(theta)*200*abs(_vars['f_speed'])))
+    if _vars['r_speed'] > 0:
+        pygame.gfxdraw.arc(screen, width/2, height/2, 200, -90, int(-90+_vars['r_speed']*180), red)
+    else:
+        pygame.gfxdraw.arc(screen, width/2, height/2, 200, int(-90+_vars['r_speed']*180), -90,  red)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
