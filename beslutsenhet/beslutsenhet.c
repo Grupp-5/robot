@@ -12,15 +12,16 @@
 #include <modulkom.h>
 #include <util/atomic.h>
 #include <stdlib.h>
+#include <math.h>
 
 //Set CPU clock
 #define F_CPU 8000000UL
 #include <util/delay.h>
 
 
-double MAX_ADJUSTMENT = 0.3; //Constant to stop the robot from turning like crazy
-double P = 1.0/60.0; //Constant for the proportional part
-double D = 1.0/30.0; //Constant for the derivative part
+double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
+double P = 1.0/40.0; //Constant for the proportional part
+double D = 1.0/5.0; //Constant for the derivative part
 double prevError = 0; //The previous error
 
 volatile uint8_t autoMode;
@@ -59,7 +60,7 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 	double error = distanceRight - distanceLeft;
 	double turn_adjustment = 0;
 	double side_adjustment = 0;
-	if(turn) {
+	if(turn == 1) {
 		turn_adjustment =  D*(error - prevError);
 		
 		if(turn_adjustment > MAX_ADJUSTMENT)
@@ -71,7 +72,7 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 			turn_adjustment = -MAX_ADJUSTMENT;
 		}
 		
-		if(abs(turn_adjustment) < 0.02)
+		if(fabs(turn_adjustment) < 0.01)
 		{
 			turn = 0;
 		}
@@ -86,7 +87,7 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 			side_adjustment = -MAX_ADJUSTMENT;
 		}
 		
-		if(abs(side_adjustment) < 0.08)
+		if(fabs(side_adjustment) < 0.2)
 		{
 			turn = 1;
 		}
