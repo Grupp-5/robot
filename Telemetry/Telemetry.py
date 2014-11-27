@@ -1,3 +1,4 @@
+import sys
 import serial
 import time
 import struct
@@ -15,11 +16,13 @@ COMMANDS = {
 }
 
 con = None
+print sys.argv[1]
+
 
 while not con:
     try:
         con = serial.Serial(
-            "COM40",
+            sys.argv[1],
             baudrate=115200,
             parity=serial.PARITY_NONE,
             bytesize=serial.EIGHTBITS,
