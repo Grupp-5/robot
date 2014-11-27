@@ -72,10 +72,10 @@ double rot_step(double x) {
 }
 
 void stepAt(double at, double step_size_forward, double step_size_side, double rotation, double height_offset, double xrot, double yrot) {
-	double max_step_height = 2.5;
-	double max_forward_step = 6;
-	double max_side_step = 5;
-	double max_rotation = M_PI_4/3;
+	double max_step_height = 2;
+	double max_forward_step = 3;
+	double max_side_step = 3;
+	double max_rotation = M_PI_4/4;
 	double max_height_diff = 4;
 	double max_x_rotation = M_PI_4/5;
 	double max_y_rotation = M_PI_4/6;
@@ -86,8 +86,8 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
 		left_step_s, right_step_s,
 		cur_rotation, height, step_height,
 		cur_x_rotation, cur_y_rotation;
-	double interpolation = 30;
-	double rot_interpolation = 40;
+	double interpolation = 10;
+	double rot_interpolation = 10;
 
 	// Börja mitt i ett steg
 	at += 0.25;
@@ -150,9 +150,11 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
 void takeStep(double speed, double speed_forward, double speed_sideway, double rotation, double height_offset, double xrot, double yrot)
 {
 	uint16_t wait_delay = 0;
-	double max_speed = 0.02;
+	double max_speed = 0.05;
 	double delay = 0;
 	static double step = 0;
+
+	speed = fmax(fabs(speed_sideway), fmax(fabs(speed_forward), fabs(rotation))) + 0.1;
 
 	step += speed*max_speed;
 
