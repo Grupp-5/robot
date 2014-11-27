@@ -93,6 +93,16 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 		}
 	}
 	
+	PD_Data pd_data = {
+		.id = PD_DATA,
+		.count = command_lengths[PD_DATA] + 2,
+		.error = error,
+		.p = side_adjustment,
+		.d = turn_adjustment
+	};
+	
+	send_data(COMMUNICATION, pd_data.bus_data);
+	
 	prevError = error;
 	
 	send_move_data(0.5, side_adjustment, turn_adjustment);

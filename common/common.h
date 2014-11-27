@@ -27,7 +27,8 @@ typedef enum {
 	SET_D,
 	SENSOR_DATA,
 	SET_HEIGHT,
-	ROTATION
+	ROTATION,
+	PD_DATA
 	// o.s.v..
 } Data_id;
 
@@ -42,7 +43,8 @@ static uint8_t command_lengths[] = {
 	[SET_D]       = 4,
 	[SENSOR_DATA] = 4*5, // 5 doubles från sensorerna
 	[SET_HEIGHT]  = 4, // 1 double
-	[ROTATION]    = 4+4
+	[ROTATION]    = 4+4,
+	[PD_DATA]     = 4*3 // Error + P + D
 };
 
 // [Kommando] | ska till | enhet
@@ -54,7 +56,8 @@ static Device_id which_device[] = {
 	[SET_P]            = DECISION,
 	[SET_D]            = DECISION,
 	[SET_HEIGHT]       = CONTROL,
-	[ROTATION]         = CONTROL
+	[ROTATION]         = CONTROL,
+	[PD_DATA]          = COMMUNICATION
 };
 
 typedef union {
@@ -108,6 +111,17 @@ typedef union {
 		double constant;
 	};
 } Constant_data;
+
+typedef union {
+	struct {
+		uint8_t count;
+		data_id id;
+		double error;
+		double p;
+		double d;
+	};
+	Bus_data bus_data;
+} PD_Data;
 
 #endif /* COMMON_H_ */
 

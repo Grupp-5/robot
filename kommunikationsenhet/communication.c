@@ -109,7 +109,10 @@ void interpret_data(Bus_data data){
 	if(data_to_receive.id == STOP_TIMER) {
 		autoMode = 0;
 	}
-	USART_Send_Byte(*data_to_receive.data);
+	USART_Send_Byte(data_to_receive.id);
+	for (uint8_t c = 0; c < data_to_receive.count; c++) {
+		USART_Send_Byte(data_to_receive.data[c]);
+	}
 }
 
 //Poll for data
