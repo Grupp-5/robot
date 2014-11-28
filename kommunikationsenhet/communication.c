@@ -145,16 +145,17 @@ int main(void) {
 	sei();//Enable interrupts in status register
     while(1) {
 		while(poll == 0) {}
-			uint8_t nr_of_data = 1;
-			master_data_to_receive.count = nr_of_data + 1;
-			//fetch_data(DECISION, &master_data_to_receive);
-	
-			for(int i = 0; i<nr_of_data; i++)
-			{
-				//cli();
-				//USART_Send_Byte(master_data_to_receive.data[i]);
-				//sei();
-			}
-			poll = 0;
+
+		cli();
+
+		USART_Send_Byte(data_to_receive.id);
+
+		for (uint8_t c = 0; c < data_to_receive.count - 2; c++) {
+			USART_Send_Byte(data_to_receive.data[c]);
+		}
+
+		sei();
+
+		poll = 0;
     }
 }

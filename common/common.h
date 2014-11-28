@@ -40,7 +40,7 @@ static uint8_t command_lengths[] = {
 	[STOP_TIMER]  = 0,
 	[SET_P]       = 4, // 8-bitars-tal?
 	[SET_D]       = 4,
-	[SENSOR_DATA] = 4*5, // 5 doubles från sensorerna
+	[SENSOR_DATA] = 4*6, // 5 doubles från sensorerna
 	[SET_HEIGHT]  = 4, // 1 double
 	[ROTATION]    = 4+4
 };
@@ -97,6 +97,7 @@ typedef union {
 		double fl;
 		double f;
 		double bl;
+        double gyro;
 	};
 } Sensor_data;
 
@@ -110,4 +111,3 @@ typedef union {
 } Constant_data;
 
 #endif /* COMMON_H_ */
-
