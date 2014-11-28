@@ -9,9 +9,10 @@
 #ifndef GYRO_H_
 #define GYRO_H_
 
+/* Initiera ISP för överföring */
 void SPI_init(void);
-void activate_adc(void);
-void deactivate_adc(void);
-uint16_t read_ar_data(void);
+
+/* Hämta vinkelfrekvens */
+int fetch_angular_rate(void);
 
 #endif /* GYRO_H_ */
