@@ -86,13 +86,20 @@ uint16_t read_ar_data(void) {
 	return result;
 }
 
+/* Konvertera till vinkel/sekund */
 int ar_degrees(uint16_t adc_code)
 {
-	int conversion = (adc_code * 25.0/12.0) + 400.0;
-	int offset = 2507;
-	double gain = 4.87;
-	return (conversion - offset) / gain;
+	int conversion = (adc_code * 25/12) + 400;
+	int offset = 2500;
+	double gain = 13.33; //double gain = 6.67;
+	return (conversion - offset) / gain;	// 70ish = 90 Grader
 	//return conversion;
+}
+
+int fetch_angular_rate(void) {
+	activate_adc();
+	_delay_us(250);
+	return ar_degrees(read_ar_data());
 }
 
 
@@ -110,6 +117,15 @@ int main(void) {
 
 	while (1)
 	{
+		test2 = fetch_angular_rate();
+		degree += test2 / 1000.0;
+		
+		if (count++ > 5000)
+		{
+			degree2 = degree;
+			count = 0;
+		}
+		/*
 		activate_adc();
 		_delay_ms(1);
 		test = read_ar_data();
@@ -120,6 +136,7 @@ int main(void) {
 			degree2 = degree;
 			count = 0;
 		}
+		*/
 	}
 
 	//	Sätt bra output-portar för debuggning med logikanalysator här
