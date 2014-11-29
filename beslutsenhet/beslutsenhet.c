@@ -44,6 +44,20 @@ void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t d
 	send_data(dev_id, master_data_to_send);
 }
 
+void waitForCorrectValues()
+{
+	volatile Sensor_data sensor_data;
+	do 
+	{
+		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+			master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
+			fetch_data(SENSOR, &master_data_to_receive);
+			sensor_data = (Sensor_data)master_data_to_receive;
+		}
+		_delay_ms(20);
+		
+	} while (sensor_data.bl + sensor_data.br > 75);	
+}
 
 void send_move_data(double forward, double side, double turn) {
 	Move_data move_data;
@@ -60,6 +74,7 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 	double error = distanceRight - distanceLeft;
 	double turn_adjustment = 0;
 	double side_adjustment = 0;
+	
 	if(turn == 1) {
 		turn_adjustment =  D*(error - prevError);
 		
@@ -132,35 +147,35 @@ void makeDecision(void) {
 			
 		}else {
 			if(sensor_data.f<30) {
-				send_move_data(0.4, 0, -0.8);//turn left
+				send_move_data(0.5, 0, -0.8);//turn left
 				_delay_ms(2200);
 				//Wait for 90 degree turn, by asking gyro
 				send_move_data(0.5, 0, 0);//go forward
-				_delay_ms(2500);
+				waitForCorrectValues();
 			}else {
 				if(sensor_data.fr<80) {
-					send_move_data(0.4, 0, -0.8);//turn left
+					send_move_data(0.5, 0, -0.8);//turn left
 					_delay_ms(2200);
 					//Wait for 90 degree turn, by asking gyro
 					send_move_data(0.5, 0, 0);//go forward
-					_delay_ms(2500);
+					waitForCorrectValues();
 				}
 			}
 		}
 	}else {
 		if(sensor_data.f<30) {
-			send_move_data(0.4, 0, 0.8);//turn right
+			send_move_data(0.5, 0, 0.8);//turn right
 			_delay_ms(2200);
 			//Wait for 90 degree turn, by asking gyro
 			send_move_data(0.5, 0, 0);//go forward
-			_delay_ms(2500);
+			waitForCorrectValues();
 		}else {
 			if(sensor_data.fl<80) {
-				send_move_data(0.4, 0, 0.8);//turn right
+				send_move_data(0.5, 0, 0.8);//turn right
 				_delay_ms(2200);
 				//Wait for 90 degree turn, by asking gyro
 				send_move_data(0.5, 0, 0);//go forward
-				_delay_ms(2500);
+				waitForCorrectValues();
 			}else {
 				Bus_data stop;
 				stop.id = STOP_TIMER;
