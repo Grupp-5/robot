@@ -1,14 +1,15 @@
 import serial, sys, os, struct
 
 COMMANDS = {
-    'CHANGEMODE'  : '\x00',
-    'MOVE'        : '\x01',
-    'STOP_TIMER'  : '\x02',
-    'SET_P'       : '\x03',
-    'SET_D'       : '\x04',
-    'SENSOR_DATA' : '\x05',
-    'SET_HEIGHT'  : '\x06',
-    'ROTATION'    : '\x07',
+    'CHANGEMODE'  : b'\x00',
+    'MOVE'        : b'\x01',
+    'STOP_TIMER'  : b'\x02',
+    'SET_P'       : b'\x03',
+    'SET_D'       : b'\x04',
+    'SENSOR_DATA' : b'\x05',
+    'SET_HEIGHT'  : b'\x06',
+    'ROTATION'    : b'\x07',
+    'PD_DATA'     : b'\x08',
 }
 
 def find_com_port():

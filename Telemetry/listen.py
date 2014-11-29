@@ -21,45 +21,57 @@ pg.setConfigOptions(antialias=True)
 
 # win.nextRow()
 g_plot = win.addPlot(title='Gyro')
+win.nextRow()
+ar_plot = win.addPlot(title='Angular rate')
 
 x = np.array([])
 # e_data = np.array([])
 # p_data = np.array([])
 # d_data = np.array([])
 g_data = np.array([])
+g_plot.showGrid(x=True, y=True)
+ar_data = np.array([])
+ar_plot.showGrid(x=True, y=True)
 
 timer = pg.QtCore.QTimer()
 def update():
-    # e_plot.plot(x, e_data, clear=True, pen=(0, 3))
-    # p_plot.plot(x, p_data, clear=True, pen=(1, 3))
-    # d_plot.plot(x, d_data, clear=True, pen=(2, 3))
-    g_plot.plot(x, g_data, clear=True, pen=(2, 3))
+    # e_plot.plot(x, e_data, clear=True, pen=(0, 5))
+    # p_plot.plot(x, p_data, clear=True, pen=(1, 5))
+    # d_plot.plot(x, d_data, clear=True, pen=(2, 5))
+    g_plot.plot(x, g_data, clear=True, pen=(3, 5))
+    ar_plot.plot(x, ar_data, clear=True, pen=(4, 5))
 
-timer.timeout.connect(update)
-timer.start(16)
 def reader():
     global x
-    # global e_data
-    # global p_data
-    # global d_data
-    global g_data
+    # global e_data, p_data, d_data
+    global g_data, ar_data
     counter = 0
     while True:
         raw = con.read(size=1)
-        if raw == b'\x05':
-            raw = con.read(size=4*3)
-            #error, p, d = struct.unpack('fff', raw)
-            fr, br, fl, f, bl, g = struct.unpack('ffffff', raw)
-            x = np.append(x, counter)
-            counter += 1
+        # if raw == COMMANDS['PD_DATA']:
+            # raw = con.read(size=4*3)
+            # error, p, d = struct.unpack('fff', raw)
             # e_data = np.append(e_data, error)
             # p_data = np.append(p_data, p)
             # d_data = np.append(d_data, d)
-            g_data = np.append(d_data, d)
-            print fr, br, fl, f, bl, g
+            # print error, p, d
+        if raw == COMMANDS['SENSOR_DATA']:
+            raw = con.read(size=4*6+2)
+            fr, br, fl, f, bl, g, ar = struct.unpack('ffffffh', raw)
+            g_data = np.append(g_data, g)
+            ar_data = np.append(ar_data, ar)
+            x = np.append(x, counter)
+            counter += 1
+            print fr, br, fl, f, bl, g, ar
+            print "".join(["{:02x}".format(ord(c)) for c in raw])
+        else:
+            print "".join(["{:02x}".format(ord(c)) for c in raw])
 
 t = thread.start_new_thread(reader, ())
 
+timer.timeout.connect(update)
+timer.start(20)
+
+
 while True:
     pg.QtGui.QApplication.processEvents()
-
