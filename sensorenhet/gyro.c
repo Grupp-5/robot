@@ -7,7 +7,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "gyro.h"
+#include <util/atomic.h>
 
 #define F_CPU 8000000UL
 #include <util/delay.h>
@@ -20,8 +20,7 @@
 #define ADCC_DIS 0b10010000
 #define ADCR	 0b10000000
 
-// SPI_Init
-void SPI_Init(void) {
+void gyro_init(void) {
 	DDRB |= (1<<DDB4) | (1<<DDB5) | (1<<DDB7); // Sätt NSS, MOSI och SCK som outputs
 
 	//SPSR = (1<<SPI2X); /* Set SPI double frequency */
@@ -34,6 +33,17 @@ void SPI_Init(void) {
 		(1<<CPHA) | /* data is sampled on the trailing edge of the SCK */
 		 //(1<<SPR1) | /* In this example SPI0=1, SPR1=0 (commented) and SPI2X=1 */
 		(1<<SPR0); /* It sets SCK freq. in 8 times less than a system clock */
+
+
+	// Starta timer 1 med 0 prescale och Clear Timer Compare-mode
+	TCCR1B = (1<<CS10) | (1<<WGM12);
+
+	// (1/target freq)/(1/cpu freq) - 1
+	// (1/1000)/(1/8000000) - 1
+	OCR1A = 7999;
+
+	TIMSK1 = (1<<OCIE1A);
+
 } /* DORD=0: the MSB is transmitted first */
 
 
@@ -41,12 +51,13 @@ void SPI_Init(void) {
 	Starta överföring
 */
 uint8_t SPI_EXCH (uint8_t output) {
-	SPDR = output; /* Start transmission */
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		SPDR = output; /* Start transmission */
 
-	/* Wait till a transmission and reception are completed */
-	//while(!(SPSR & (1<<SPIF)));
-	WAIT_ON_EXCHANGE;
-
+		/* Wait till a transmission and reception are completed */
+		//while(!(SPSR & (1<<SPIF)));
+		WAIT_ON_EXCHANGE;
+	}
 	return SPDR; /* Return Data Register */
 }
 
@@ -89,57 +100,47 @@ uint16_t read_ar_data(void) {
 /* Konvertera till vinkel/sekund */
 int ar_degrees(uint16_t adc_code)
 {
-	int conversion = (adc_code * 25/12) + 400;
-	int offset = 2500;
-	double gain = 13.33; //double gain = 6.67;
+	volatile int conversion = (adc_code * 25/12) + 400;
+	volatile int offset = 2507;
+	volatile double gain = 6.67; //double gain = 6.67;
 	return (conversion - offset) / gain;	// 70ish = 90 Grader
 	//return conversion;
 }
 
-int fetch_angular_rate(void) {
+int16_t fetch_angular_rate(void) {
 	activate_adc();
 	_delay_us(250);
 	return ar_degrees(read_ar_data());
 }
 
+double current_degree = 0;
+#define  DATA_POINTS 50
+int16_t arates[DATA_POINTS];
+int16_t current_arate;
 
-int main(void) {
-	sei();
-	SPI_Init();
-	//activate_adc();
-
-	volatile uint16_t test = 0;
-	volatile int test2 = 0;
-	double degree = 0;
-	volatile double degree2 = 0;
-	uint16_t count = 0;
-	//test = read_ar_data();
-
-	while (1)
-	{
-		test2 = fetch_angular_rate();
-		degree += test2 / 1000.0;
-		
-		if (count++ > 5000)
-		{
-			degree2 = degree;
-			count = 0;
-		}
-		/*
-		activate_adc();
-		_delay_ms(1);
-		test = read_ar_data();
-		test2 = ar_degrees(test);
-		degree += test2 / 1000.0;
-		if (count++ > 5000)
-		{
-			degree2 = degree;
-			count = 0;
-		}
-		*/
+int16_t arate_sum() {
+	int16_t  sum = 0;
+	for (int i = 0; i < DATA_POINTS; i++) {
+		sum += arates[i];
 	}
+	return sum;
+}
 
-	//	Sätt bra output-portar för debuggning med logikanalysator här
+// Körs varje millisekund
+ISR(TIMER1_COMPA_vect) {
+	arates[current_arate] = fetch_angular_rate();
+	current_arate = (current_arate + 1) % DATA_POINTS;
 
-	return 0;
+	int16_t arate_mean = arate_sum()/DATA_POINTS;
+	current_degree += arate_mean / 1000.0; // 1000 som i 1 millisekund
+	current_degree = current_degree;
+}
+
+
+double current_degrees() {
+	return current_degree;
+}
+
+int16_t get_current_arate() {
+	return arate_sum()/DATA_POINTS;
 }

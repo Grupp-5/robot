@@ -5,7 +5,7 @@
  *  Author: geoza435, dansj232
  */
 
-
+#include "gyro.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/atomic.h>
@@ -111,6 +111,8 @@ Bus_data prepare_data() {
 	sensor_data.fl = cm[IR_FL];
 	sensor_data.f = cm[IR_F];
 	sensor_data.bl = cm[IR_BL];
+	sensor_data.gyro = current_degrees();
+	sensor_data.arate = get_current_arate();
 	data_to_send = sensor_data.bus_data;
 	return data_to_send;
 }
@@ -126,6 +128,9 @@ int main(void) {
 	   go into effect until ADEN is set.
 	*/
 	set_as_slave(F_CPU, prepare_data, interpret_data, SENSOR);
+
+	gyro_init();
+
 	sei(); //Aktivera interrupts
 	// Börja med första sensorn
 	ADMUX |= sensors[current_sensor_g];

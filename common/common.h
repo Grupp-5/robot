@@ -40,7 +40,7 @@ static uint8_t command_lengths[] = {
 	[STOP_TIMER]  = 0,
 	[SET_P]       = 4, // 8-bitars-tal?
 	[SET_D]       = 4,
-	[SENSOR_DATA] = 4*6, // 5 doubles från sensorerna
+	[SENSOR_DATA] = 4*6+2, // 5 IR-sensorer, 1 gyro och 1 angular rate
 	[SET_HEIGHT]  = 4, // 1 double
 	[ROTATION]    = 4+4
 };
@@ -97,7 +97,8 @@ typedef union {
 		double fl;
 		double f;
 		double bl;
-        double gyro;
+		double gyro;
+		int16_t arate;
 	};
 } Sensor_data;
 
