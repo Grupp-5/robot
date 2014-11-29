@@ -146,6 +146,8 @@ int main(void) {
     while(1) {
 		while(poll == 0) {}
 
+		data_to_receive.count = command_lengths[SENSOR_DATA] + 2;
+		fetch_data(SENSOR, &data_to_receive);
 		cli();
 
 		USART_Send_Byte(data_to_receive.id);

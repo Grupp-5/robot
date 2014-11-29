@@ -9,10 +9,11 @@
 #ifndef GYRO_H_
 #define GYRO_H_
 
-/* Initiera ISP för överföring */
-void SPI_init(void);
+#include <stdint.h>
 
-/* Hämta vinkelfrekvens */
-int fetch_angular_rate(void);
+void gyro_init(void);
+
+double current_degrees();
+int16_t get_current_arate();
 
 #endif /* GYRO_H_ */
