@@ -19,15 +19,17 @@
 #include <util/delay.h>
 
 
+uint16_t deltaT = 0x6FFF;//Change this to change time between PD-adjustments
 double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
-double P = 1.0/40.0; //Constant for the proportional part
-double D = 1.0/5.0; //Constant for the derivative part
+double P; //Constant for the proportional part
+double D; //Constant for the derivative part
 double prevError = 0; //The previous error
 
 volatile uint8_t autoMode;
 volatile uint8_t makeDecisionFlag;
 volatile uint8_t pdFlag;
 volatile uint8_t turn;
+volatile uint8_t stableValues;
 
 
 Bus_data data_to_send = {0};
@@ -76,21 +78,26 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 	double side_adjustment = 0;
 	
 	if(turn == 1) {
-		turn_adjustment =  D*(error - prevError);
+		if(stableValues == 3) {
+			turn_adjustment =  D*((error+prevError)/2 - prevError)/(double)deltaT;
+			
+			if(turn_adjustment > MAX_ADJUSTMENT)
+			{
+				turn_adjustment = MAX_ADJUSTMENT;
+			}
+			else if(turn_adjustment < -MAX_ADJUSTMENT)
+			{
+				turn_adjustment = -MAX_ADJUSTMENT;
+			}
+			
+			if(fabs(turn_adjustment) < 0.01)
+			{
+				turn = 0;
+			}
+		}else {
+			stableValues++;
+		}
 		
-		if(turn_adjustment > MAX_ADJUSTMENT)
-		{
-			turn_adjustment = MAX_ADJUSTMENT;
-		}
-		else if(turn_adjustment < -MAX_ADJUSTMENT)
-		{
-			turn_adjustment = -MAX_ADJUSTMENT;
-		}
-		
-		if(fabs(turn_adjustment) < 0.01)
-		{
-			turn = 0;
-		}
 	} else {
 		side_adjustment = P*error;
 		if(side_adjustment > MAX_ADJUSTMENT)
@@ -102,9 +109,10 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 			side_adjustment = -MAX_ADJUSTMENT;
 		}
 		
-		if(fabs(side_adjustment) < 0.2)
+		if(fabs(side_adjustment) < 0.18)
 		{
 			turn = 1;
+			stableValues = 0;
 		}
 	}
 	
@@ -118,7 +126,7 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 	
 	send_data(COMMUNICATION, pd_data.bus_data);
 	
-	prevError = error;
+	prevError = (error+prevError)/2;
 	
 	send_move_data(0.5, side_adjustment, turn_adjustment);
 }
@@ -199,8 +207,8 @@ ISR(TIMER1_OVF_vect) {
 
 ISR(TIMER3_OVF_vect) {
 	pdFlag = 1;
-	TCNT3H = 0xB0; //Reset Timer3 high register
-	TCNT3L = 0x00; //Reset Timer3 low register
+	TCNT3H = 0xFF-(deltaT >> 8); //Reset Timer3 high register
+	TCNT3L = 0xFF-(deltaT & 0x00FF); //Reset Timer3 low register
 }
 
 //Initialize the timer interrupt to happen
@@ -252,10 +260,14 @@ int main(void) {
 	set_as_slave(prepare_data, interpret_data, DECISION);
 	set_as_master(F_CPU);
 	
+	P = 1.0/40.0;
+	D = (1.0/5.0)*(double)0x4FFF;
 	makeDecisionFlag = 0;
 	pdFlag = 0;
 	autoMode = 0;
 	turn = 1;
+	stableValues = 2;
+	
 	initTimer();
 	sei();
     while(1) {
