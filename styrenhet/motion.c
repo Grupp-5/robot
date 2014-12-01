@@ -92,6 +92,7 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
 	// Börja mitt i ett steg
 	at += 0.25;
 
+	// TODO: Knasig interpolation, får roboten att sprattla till ibland.
 	left_step_f  =  left_step_f + (step_size_forward-left_step_f)/interpolation;
 	right_step_f = right_step_f + (step_size_forward-right_step_f)/interpolation;
 	left_step_s	 =  left_step_s + (step_size_side-left_step_s)/interpolation;
