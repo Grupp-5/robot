@@ -13,6 +13,8 @@
 #include <common.h>
 #include <modulkom.h>
 
+#define F_CPU 8000000L
+
 #define IR_COUNT 5
 
 /*
@@ -123,7 +125,7 @@ int main(void) {
 	   ADCSRA. Voltage reference and input channel selections will not
 	   go into effect until ADEN is set.
 	*/
-	set_as_slave(prepare_data, interpret_data, SENSOR);
+	set_as_slave(F_CPU, prepare_data, interpret_data, SENSOR);
 	sei(); //Aktivera interrupts
 	// Börja med första sensorn
 	ADMUX |= sensors[current_sensor_g];

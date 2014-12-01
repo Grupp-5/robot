@@ -176,7 +176,7 @@ void interpret_data(Bus_data data){
 }
 
 int main(void) {
-	set_as_slave(prepare_data, interpret_data, DECISION);
+	set_as_slave(F_CPU, prepare_data, interpret_data, DECISION);
 	set_as_master(F_CPU);
 	
 	makeDecisionFlag = 0;
@@ -193,11 +193,9 @@ int main(void) {
 		
 		//if(pdFlag == 1) {
 			volatile Sensor_data sensor_data;
-			ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-				master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
-				fetch_data(SENSOR, &master_data_to_receive);
-				sensor_data = (Sensor_data)master_data_to_receive;
-			}
+			master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
+			fetch_data(SENSOR, &master_data_to_receive);
+			sensor_data = (Sensor_data)master_data_to_receive;
 			double adjustment = pdAlgoritm(sensor_data.br, sensor_data.bl);
 			//send_move_data(0.5, 0, adjustment);
 			pdFlag = 0;

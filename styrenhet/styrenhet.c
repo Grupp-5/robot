@@ -30,7 +30,6 @@ Bus_data prepare_data() {
 	return data_to_send;
 }
 
-
 void interpret_data(Bus_data data){
 	data_to_receive = data;
 	if(data_to_receive.id == MOVE) {
@@ -64,7 +63,7 @@ int main(void)
 	volatile double height2 = 0;
 	volatile double xrot2 = 0;
 	volatile double yrot2 = 0;
-	set_as_slave(prepare_data, interpret_data, CONTROL);
+	set_as_slave(F_CPU, prepare_data, interpret_data, CONTROL);
 	// Delay för att servona ska hinna starta, typ
 	_delay_ms(10);
 	
