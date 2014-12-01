@@ -49,33 +49,30 @@ ISR(PCINT0_vect) {
 			autoMode = 0;
 		}
 		uint8_t data[1] = {autoMode};
+		sei(); // TODO: Flytta ut till main-loop
 		send_to_bus(which_device[CHANGEMODE], CHANGEMODE, command_lengths[CHANGEMODE], data);//Tell beslutsenhet to change mode
 	}
 }
 
-
 //Data received interrupt
 ISR(USART1_RX_vect) {
 	uint8_t command = UDR1;
+	uint8_t data[MAX_DATA];
+	// Vänta på mer data om det är vettigt
+	for (uint8_t c = 0; c < command_lengths[command]; c++) {
+		loop_until_bit_is_set(UCSR1A, RXC1);
+		data[c] = UDR1;
+	}
 
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		uint8_t data[MAX_DATA];
-
-		// Vänta på mer data om det är vettigt
-		for (uint8_t c = 0; c < command_lengths[command]; c++) {
-			loop_until_bit_is_set(UCSR1A, RXC1);
-			data[c] = UDR1;
-		}
-
-		// Skicka vidare kommandot om det inte var avsett för komm-enheten
-		if (which_device[command] != COMMUNICATION) {
-			send_to_bus(which_device[command],
-			            command,
-			            command_lengths[command],
-			            data);
-		} else {
-			// Ska kommunikationsenheten aldrig göra nåt?
-		}
+	sei(); // TODO: Spara undan data och skicka det vidare i typ main()
+	// Skicka vidare kommandot om det inte var avsett för komm-enheten
+	if (which_device[command] != COMMUNICATION) {
+		send_to_bus(which_device[command],
+		            command,
+		            command_lengths[command],
+		            data);
+	} else {
+		// Ska kommunikationsenheten aldrig göra nåt?
 	}
 }
 
@@ -109,7 +106,10 @@ void interpret_data(Bus_data data){
 	if(data_to_receive.id == STOP_TIMER) {
 		autoMode = 0;
 	}
-	USART_Send_Byte(*data_to_receive.data);
+	USART_Send_Byte(data_to_receive.id);
+	for (uint8_t c = 0; c < data_to_receive.count; c++) {
+		USART_Send_Byte(data_to_receive.data[c]);
+	}
 }
 
 //Poll for data
@@ -129,7 +129,7 @@ void initTimer(void) {
 }
 
 int main(void) {
-	set_as_slave(prepare_data, interpret_data, COMMUNICATION);
+	set_as_slave(F_CPU, prepare_data, interpret_data, COMMUNICATION);
 	set_as_master(F_CPU);
 	
 	poll = 0;
@@ -144,17 +144,19 @@ int main(void) {
 	initTimer();
 	sei();//Enable interrupts in status register
     while(1) {
-		while(poll == 0) {}
-			uint8_t nr_of_data = 1;
-			master_data_to_receive.count = nr_of_data + 1;
-			//fetch_data(DECISION, &master_data_to_receive);
-	
-			for(int i = 0; i<nr_of_data; i++)
-			{
-				//cli();
-				//USART_Send_Byte(master_data_to_receive.data[i]);
-				//sei();
+		if (poll == 1) {
+			data_to_receive.count = command_lengths[SENSOR_DATA] + 2;
+			fetch_data(SENSOR, &data_to_receive);
+			cli();
+
+			USART_Send_Byte(data_to_receive.id);
+
+			for (uint8_t c = 0; c < data_to_receive.count - 2; c++) {
+				USART_Send_Byte(data_to_receive.data[c]);
 			}
+
+			sei();
 			poll = 0;
+		}
     }
 }
