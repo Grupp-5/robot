@@ -267,7 +267,7 @@ void interpret_data(Bus_data data){
 }
 
 int main(void) {
-	set_as_slave(prepare_data, interpret_data, DECISION);
+	set_as_slave(F_CPU, prepare_data, interpret_data, DECISION);
 	set_as_master(F_CPU);
 	
 	P = 1.0/40.0;

@@ -100,13 +100,13 @@
         <avrgcc.linker.libraries.Libraries>
           <ListValues>
             <Value>modulkommunikation</Value>
-            <Value>i2c</Value>
+            <Value>twi</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
         <avrgcc.linker.libraries.LibrarySearchPaths>
           <ListValues>
             <Value>../../modulkommunikation/Debug</Value>
-            <Value>../../i2c/Debug</Value>
+            <Value>../../twi/Debug</Value>
           </ListValues>
         </avrgcc.linker.libraries.LibrarySearchPaths>
       </AvrGcc>

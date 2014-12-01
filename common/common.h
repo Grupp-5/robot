@@ -41,7 +41,7 @@ static uint8_t command_lengths[] = {
 	[STOP_TIMER]  = 0,
 	[SET_P]       = 4, // 8-bitars-tal?
 	[SET_D]       = 4,
-	[SENSOR_DATA] = 4*5, // 5 doubles från sensorerna
+	[SENSOR_DATA] = 4*6+2, // 5 IR-sensorer, 1 gyro och 1 angular rate
 	[SET_HEIGHT]  = 4, // 1 double
 	[ROTATION]    = 4+4,
 	[PD_DATA]     = 4*3 // Error + P + D
@@ -100,6 +100,8 @@ typedef union {
 		double fl;
 		double f;
 		double bl;
+		double gyro;
+		int16_t arate;
 	};
 } Sensor_data;
 
@@ -124,4 +126,3 @@ typedef union {
 } PD_Data;
 
 #endif /* COMMON_H_ */
-

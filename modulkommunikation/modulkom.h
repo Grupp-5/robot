@@ -26,7 +26,7 @@ typedef	struct {	// Data som ska skickas på bussen
 /************************************************************************/
 
 /* Initieringsfunktioner */
-void set_as_slave(Bus_data(*prepare_data)(), void(*interpret_data)(Bus_data), data_id id);
+void set_as_slave(uint32_t f_cpu, Bus_data(*prepare_data)(), void(*interpret_data)(Bus_data), device_id id);
 void set_as_master(uint32_t f_cpu);
 
 /* Kommunikationsfunktioner för master */

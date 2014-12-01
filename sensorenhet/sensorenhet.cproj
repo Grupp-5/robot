@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>
@@ -61,6 +61,18 @@
       <ToolName>JTAGICE3</ToolName>
     </com_atmel_avrdbg_tool_jtagice3plus>
     <avrtoolinterface>JTAG</avrtoolinterface>
+    <com_atmel_avrdbg_tool_simulator>
+      <ToolOptions xmlns="">
+        <InterfaceProperties>
+        </InterfaceProperties>
+        <InterfaceName>
+        </InterfaceName>
+      </ToolOptions>
+      <ToolType xmlns="">com.atmel.avrdbg.tool.simulator</ToolType>
+      <ToolNumber xmlns="">
+      </ToolNumber>
+      <ToolName xmlns="">Simulator</ToolName>
+    </com_atmel_avrdbg_tool_simulator>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -120,14 +132,14 @@
         <avrgcc.linker.libraries.Libraries>
           <ListValues>
             <Value>libm</Value>
-            <Value>i2c</Value>
             <Value>modulkommunikation</Value>
+            <Value>twi</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
         <avrgcc.linker.libraries.LibrarySearchPaths>
           <ListValues>
-            <Value>../../i2c/Debug</Value>
             <Value>../../modulkommunikation/Debug</Value>
+            <Value>../../twi/Debug</Value>
           </ListValues>
         </avrgcc.linker.libraries.LibrarySearchPaths>
         <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
@@ -135,6 +147,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="gyro.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="gyro.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="sensorenhet.c">
       <SubType>compile</SubType>
     </Compile>
