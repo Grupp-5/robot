@@ -46,21 +46,6 @@ void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t d
 	send_data(dev_id, master_data_to_send);
 }
 
-void waitForCorrectValues()
-{
-	volatile Sensor_data sensor_data;
-	do 
-	{
-		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-			master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
-			fetch_data(SENSOR, &master_data_to_receive);
-			sensor_data = (Sensor_data)master_data_to_receive;
-		}
-		_delay_ms(20);
-		
-	} while (sensor_data.bl + sensor_data.br > 75);	
-}
-
 void send_move_data(double forward, double side, double turn) {
 	Move_data move_data;
 	move_data.count = command_lengths[MOVE]+2;
@@ -71,6 +56,26 @@ void send_move_data(double forward, double side, double turn) {
 	send_data(which_device[MOVE], move_data.bus_data);
 }
 
+Sensor_data getSensorData() {
+	volatile Sensor_data sensor_data;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
+		fetch_data(SENSOR, &master_data_to_receive);
+		sensor_data = (Sensor_data)master_data_to_receive;
+	}
+	return sensor_data;
+}
+
+void waitForCorrectValues()
+{
+	volatile Sensor_data sensor_data;
+	do
+	{
+		sensor_data = getSensorData();
+		_delay_ms(20);
+		
+	} while (sensor_data.bl + sensor_data.br > 75);
+}
 
 void pdAlgoritm(double distanceRight, double distanceLeft) {
 	double error = distanceRight - distanceLeft;
@@ -131,13 +136,20 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 	send_move_data(0.5, side_adjustment, turn_adjustment);
 }
 
+void waitForGyro(double deg) {
+	//double startGyro = getSensorData().gyro;
+	//volatile Sensor_data sensor_data;
+	//do
+	//{
+		//_delay_ms(20);
+		//sensor_data = getSensorData();
+		//
+	//} while (fabs(sensor_data.gyro - startGyro) < deg);
+	_delay_ms(2200);
+}
+
 void makeDecision(void) {
-	volatile Sensor_data sensor_data;
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
-		fetch_data(SENSOR, &master_data_to_receive);
-		sensor_data = (Sensor_data)master_data_to_receive;
-	}
+	volatile Sensor_data sensor_data = getSensorData();
 	
 	//if(sensor_data.f < 30)
 	//{
@@ -155,16 +167,15 @@ void makeDecision(void) {
 			
 		}else {
 			if(sensor_data.f<30) {
-				send_move_data(0.5, 0, -0.8);//turn left
-				_delay_ms(2200);
-				//Wait for 90 degree turn, by asking gyro
+				send_move_data(0, 0, -0.8);//turn left
+				waitForGyro(90);//Wait for 90 degree turn, by asking gyro
 				send_move_data(0.5, 0, 0);//go forward
 				waitForCorrectValues();
 			}else {
 				if(sensor_data.fr<80) {
+					_delay_ms(500);
 					send_move_data(0.5, 0, -0.8);//turn left
-					_delay_ms(2200);
-					//Wait for 90 degree turn, by asking gyro
+					waitForGyro(90);//Wait for 90 degree turn, by asking gyro
 					send_move_data(0.5, 0, 0);//go forward
 					waitForCorrectValues();
 				}
@@ -172,16 +183,15 @@ void makeDecision(void) {
 		}
 	}else {
 		if(sensor_data.f<30) {
-			send_move_data(0.5, 0, 0.8);//turn right
-			_delay_ms(2200);
-			//Wait for 90 degree turn, by asking gyro
+			send_move_data(0, 0, 0.8);//turn right
+			waitForGyro(90);//Wait for 90 degree turn, by asking gyro
 			send_move_data(0.5, 0, 0);//go forward
 			waitForCorrectValues();
 		}else {
 			if(sensor_data.fl<80) {
+				_delay_ms(500);
 				send_move_data(0.5, 0, 0.8);//turn right
-				_delay_ms(2200);
-				//Wait for 90 degree turn, by asking gyro
+				waitForGyro(90);//Wait for 90 degree turn, by asking gyro
 				send_move_data(0.5, 0, 0);//go forward
 				waitForCorrectValues();
 			}else {
@@ -280,12 +290,7 @@ int main(void) {
 		_delay_ms(20);
 		
 		if(pdFlag == 1) {
-			volatile Sensor_data sensor_data;
-			ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-				master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
-				fetch_data(SENSOR, &master_data_to_receive);
-				sensor_data = (Sensor_data)master_data_to_receive;
-			}
+			volatile Sensor_data sensor_data = getSensorData();
 			pdAlgoritm(sensor_data.br, sensor_data.bl);
 			pdFlag = 0;
 		}
