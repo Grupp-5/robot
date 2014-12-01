@@ -1,8 +1,7 @@
 from serial_robot import *
-
 con = connect_to_robot()
 
-import thread
+import thread, time
 import pyqtgraph as pg
 import numpy as np
 
@@ -10,62 +9,95 @@ win = pg.GraphicsWindow(title="Telemetri")
 win.resize(1000,1000)
 pg.setConfigOptions(antialias=True)
 
-# e_plot = win.addPlot(title='Error')
-# e_plot.showGrid(x=True, y=True)
-# win.nextRow()
-# p_plot = win.addPlot(title='P')
-# p_plot.showGrid(x=True, y=True)
-# win.nextRow()
-# d_plot = win.addPlot(title='D')
-# d_plot.showGrid(x=True, y=True)
+def create_plot(title, **kwargs):
+    #       0: plotItem               1:ydata       0:xdata
+    return [win.addPlot(title=title, **kwargs), np.array([]), np.array([])]
 
-# win.nextRow()
-g_plot = win.addPlot(title='Gyro')
+ALL_PLOTS = {}
+ALL_PLOTS['e'] = create_plot('Error', colspan=5)
 win.nextRow()
-ar_plot = win.addPlot(title='Angular rate')
+ALL_PLOTS['p'] = create_plot('P', colspan=5)
+win.nextRow()
+ALL_PLOTS['d'] = create_plot('D', colspan=5)
+win.nextRow()
+ALL_PLOTS['a'] = create_plot('Adjustment', colspan=5)
+win.nextRow()
+
+ALL_PLOTS['bl'] = create_plot('BL')
+ALL_PLOTS['fl'] = create_plot('FL')
+ALL_PLOTS['f'] = create_plot('F')
+ALL_PLOTS['fr'] = create_plot('FR')
+ALL_PLOTS['br'] = create_plot('BR')
+win.nextRow()
+
+ALL_PLOTS['g'] = create_plot('Gyro', colspan=4)
+ALL_PLOTS['ar'] = create_plot('Angular Rate')
 
 x = np.array([])
-# e_data = np.array([])
-# p_data = np.array([])
-# d_data = np.array([])
-g_data = np.array([])
-g_plot.showGrid(x=True, y=True)
-ar_data = np.array([])
-ar_plot.showGrid(x=True, y=True)
 
-timer = pg.QtCore.QTimer()
+for k, v in ALL_PLOTS.iteritems():
+    v[0].showGrid(x=True, y=True)
+
 def update():
-    # e_plot.plot(x, e_data, clear=True, pen=(0, 5))
-    # p_plot.plot(x, p_data, clear=True, pen=(1, 5))
-    # d_plot.plot(x, d_data, clear=True, pen=(2, 5))
-    g_plot.plot(x, g_data, clear=True, pen=(3, 5))
-    ar_plot.plot(x, ar_data, clear=True, pen=(4, 5))
+    count = 0
+    global ALL_PLOTS
+    for k, v in ALL_PLOTS.iteritems():
+        v[0].plot(v[2], v[1], clear=True, pen=(count, len(ALL_PLOTS)))
+        count += 1
+
+def print_raw(raw):
+    print "".join(["{:02x}".format(ord(c)) for c in raw])
 
 def reader():
     global x
-    # global e_data, p_data, d_data
-    global g_data, ar_data
+    global ALL_PLOTS
     counter = 0
+    pd_counter = 0
     while True:
         raw = con.read(size=1)
-        # if raw == COMMANDS['PD_DATA']:
-            # raw = con.read(size=4*3)
-            # error, p, d = struct.unpack('fff', raw)
-            # e_data = np.append(e_data, error)
-            # p_data = np.append(p_data, p)
-            # d_data = np.append(d_data, d)
-            # print error, p, d
+        print_raw(raw)
+        if raw == COMMANDS['PD_DATA']:
+            raw = con.read(size=4*4)
+            error, p, d, adj = struct.unpack('ffff', raw)
+            pd_counter += 1
+            ALL_PLOTS['e'][1] = np.append(ALL_PLOTS['e'][1], error)
+            ALL_PLOTS['p'][1] = np.append(ALL_PLOTS['p'][1], p)
+            ALL_PLOTS['d'][1] = np.append(ALL_PLOTS['d'][1], d)
+            ALL_PLOTS['a'][1] = np.append(ALL_PLOTS['a'][1], adj)
+            for x in ['e', 'p', 'd', 'a']:
+                ALL_PLOTS[x][2] = np.append(ALL_PLOTS[x][2], pd_counter)
+
+            print error, p, d, adj
+            print_raw(raw)
         if raw == COMMANDS['SENSOR_DATA']:
             raw = con.read(size=4*6+2)
             fr, br, fl, f, bl, g, ar = struct.unpack('ffffffh', raw)
-            g_data = np.append(g_data, g)
-            ar_data = np.append(ar_data, ar)
-            x = np.append(x, counter)
             counter += 1
+            ALL_PLOTS['bl'][1] = np.append(ALL_PLOTS['bl'][1], bl)
+            ALL_PLOTS['br'][1] = np.append(ALL_PLOTS['br'][1], br)
+            ALL_PLOTS['fl'][1] = np.append(ALL_PLOTS['fl'][1], fl)
+            ALL_PLOTS['fr'][1] = np.append(ALL_PLOTS['fr'][1], fr)
+            ALL_PLOTS['f'][1] = np.append(ALL_PLOTS['f'][1], f)
+            ALL_PLOTS['g'][1] = np.append(ALL_PLOTS['g'][1], g)
+            ALL_PLOTS['ar'][1] = np.append(ALL_PLOTS['ar'][1], ar)
+            for x in ['bl', 'br', 'fl', 'fr', 'f', 'g', 'ar']:
+                ALL_PLOTS[x][2] = np.append(ALL_PLOTS[x][2], counter)
             print fr, br, fl, f, bl, g, ar
-            print "".join(["{:02x}".format(ord(c)) for c in raw])
-        else:
-            print "".join(["{:02x}".format(ord(c)) for c in raw])
+            print_raw(raw)
+
+timer = pg.QtCore.QTimer()
+timer.timeout.connect(update)
+timer.start(100)
+
+def create_mode_command(mode):
+    ret = COMMANDS['CHANGEMODE']
+    ret += struct.pack('B', mode)
+    return ret
+
+mode = 1
+
+print "Sending changemode {}.".format(mode)
+con.write(create_mode_command(mode))
 
 t = thread.start_new_thread(reader, ())
 

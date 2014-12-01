@@ -12,39 +12,23 @@
 #include <modulkom.h>
 #include <util/atomic.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <math.h>
 
 //Set CPU clock
 #define F_CPU 8000000UL
 #include <util/delay.h>
 
-
-uint16_t deltaT = 0x6FFF;//Change this to change time between PD-adjustments
-double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
-double P; //Constant for the proportional part
-double D; //Constant for the derivative part
-double prevError = 0; //The previous error
-
 volatile uint8_t autoMode;
 volatile uint8_t makeDecisionFlag;
 volatile uint8_t pdFlag;
 volatile uint8_t turn;
-volatile uint8_t stableValues;
-
+volatile uint8_t send_stop = false;
 
 Bus_data data_to_send = {0};
 Bus_data data_to_receive = {0};
 Bus_data master_data_to_send = {0};
 Bus_data master_data_to_receive = {0};
-	
-void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t data_array[]) {
-	master_data_to_send.id = data_id;
-	master_data_to_send.count = arg_count+2;
-	for(int i = 0; i<arg_count; i++) {
-		master_data_to_send.data[i] = data_array[i];
-	}
-	send_data(dev_id, master_data_to_send);
-}
 
 void send_move_data(double forward, double side, double turn) {
 	Move_data move_data;
@@ -77,63 +61,57 @@ void waitForCorrectValues()
 	} while (sensor_data.bl + sensor_data.br > 75);
 }
 
-void pdAlgoritm(double distanceRight, double distanceLeft) {
-	double error = distanceRight - distanceLeft;
-	double turn_adjustment = 0;
-	double side_adjustment = 0;
-	
-	if(turn == 1) {
-		if(stableValues == 3) {
-			turn_adjustment =  D*((error+prevError)/2 - prevError)/(double)deltaT;
-			
-			if(turn_adjustment > MAX_ADJUSTMENT)
-			{
-				turn_adjustment = MAX_ADJUSTMENT;
-			}
-			else if(turn_adjustment < -MAX_ADJUSTMENT)
-			{
-				turn_adjustment = -MAX_ADJUSTMENT;
-			}
-			
-			if(fabs(turn_adjustment) < 0.01)
-			{
-				turn = 0;
-			}
-		}else {
-			stableValues++;
-		}
-		
-	} else {
-		side_adjustment = P*error;
-		if(side_adjustment > MAX_ADJUSTMENT)
-		{
-			side_adjustment = MAX_ADJUSTMENT;
-		}
-		else if(side_adjustment < -MAX_ADJUSTMENT)
-		{
-			side_adjustment = -MAX_ADJUSTMENT;
-		}
-		
-		if(fabs(side_adjustment) < 0.18)
-		{
-			turn = 1;
-			stableValues = 0;
-		}
+double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
+double P = 0.01; //Constant for the proportional part
+double D = 0.1; //Constant for the derivative part
+
+#define ERROR_COUNT 10
+double errors[ERROR_COUNT] = {0};
+uint8_t current_error = 0; // Nuvarande error i errors-arrayen
+double prevError = 0; //The previous error
+
+double error_mean() {
+	double sum = 0;
+	for (int i = 0; i < ERROR_COUNT; i++) {
+		sum += errors[i];
 	}
-	
+	return sum/ERROR_COUNT;
+}
+
+void nextError() {
+	current_error = (current_error + 1) % ERROR_COUNT;
+}
+
+void pdAlgoritm(double distanceRight, double distanceLeft) {
+	errors[current_error] = distanceRight - distanceLeft;
+	nextError();
+
+	double error = error_mean();
+
+	double d_adjustment = 0;
+	double p_adjustment = 0;
+	double adjustment = 0;
+
+	d_adjustment = D*(error - prevError);
+	p_adjustment = P*error;
+
+	adjustment = p_adjustment + d_adjustment;
+	adjustment = fmax(fmin(adjustment, MAX_ADJUSTMENT), -MAX_ADJUSTMENT);
+
+	prevError = error;
+
 	PD_Data pd_data = {
 		.id = PD_DATA,
 		.count = command_lengths[PD_DATA] + 2,
 		.error = error,
-		.p = side_adjustment,
-		.d = turn_adjustment
+		.p = p_adjustment,
+		.d = d_adjustment,
+		.adjustment = adjustment
 	};
-	
+
 	send_data(COMMUNICATION, pd_data.bus_data);
-	
-	prevError = (error+prevError)/2;
-	
-	send_move_data(0.5, side_adjustment, turn_adjustment);
+
+	send_move_data(0.5, 0, adjustment);
 }
 
 void waitForGyro(double deg) {
@@ -258,9 +236,11 @@ void interpret_data(Bus_data data){
 		if(autoMode == 1) {
 			TIMSK1 |= (1<<TOIE1);//Enable timer overflow interrupt for Timer1
 			TIMSK3 |= (1<<TOIE3);//Enable timer overflow interrupt for Timer3
+			send_stop = false;
 		}else {
 			TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
 			TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
+			send_stop = true;
 		}
 		
 	}
@@ -295,6 +275,10 @@ int main(void) {
 			pdFlag = 0;
 		}
 		
+		if(send_stop) {
+			send_move_data(0, 0, 0);
+		}
+
 		_delay_ms(20);
     }
 }

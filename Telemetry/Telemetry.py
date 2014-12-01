@@ -1,9 +1,7 @@
-import sys
 import time
 import thread
 
 from serial_robot import *
-
 con = connect_to_robot()
 
 import math as m
@@ -66,6 +64,15 @@ actions = [
      {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'yrot', 'step_size': 0.1}),
 ]
 
+def print_raw(raw):
+    print "".join(["{:02x}".format(ord(c)) for c in raw])
+
+def reader():
+    while True:
+        print_raw(con.read(size=4*5))
+
+
+
 def command_sender():
     while 1:
         con.write(create_move_command(_vars['f_speed'], _vars['s_speed'], _vars['r_speed']))
@@ -77,11 +84,12 @@ def command_sender():
         print _vars['f_speed'], _vars['s_speed'], _vars['r_speed'], _vars['height']
 
 t = thread.start_new_thread(command_sender, ())
+reader_t = thread.start_new_thread(reader, ())
 
-j = pygame.joystick.Joystick(0)
-j.init()
+#j = pygame.joystick.Joystick(0)
+#j.init()
 
-print j.get_numaxes()
+#print j.get_numaxes()
 
 MAX_MARGIN = 0.05
 
@@ -94,26 +102,26 @@ while 1:
     #     print i, j.get_axis(i)
 
 
-    _vars['f_speed'] = -j.get_axis(1)
-    _vars['s_speed'] = j.get_axis(0)
-    _vars['yrot'] = -j.get_axis(2)
-    _vars['xrot'] = -j.get_axis(3)
+    #_vars['f_speed'] = -j.get_axis(1)
+    #_vars['s_speed'] = j.get_axis(0)
+    #_vars['yrot'] = -j.get_axis(2)
+    #_vars['xrot'] = -j.get_axis(3)
 
-    _vars['r_speed'] = (j.get_axis(4)+1)/2 -(j.get_axis(5)+1)/2
+    #_vars['r_speed'] = (j.get_axis(4)+1)/2 -(j.get_axis(5)+1)/2
 
     for v in ['f_speed', 's_speed', 'r_speed', 'xrot', 'yrot']:
         if abs(_vars[v]) < MAX_MARGIN:
             _vars[v] = 0
 
-    #Keys = pygame.key.get_pressed()
+    keys = pygame.key.get_pressed()
 
-    # for key, _actions in actions:
-    #     if not keys[key[0]] and not keys[key[1]]:
-    #         _actions['neither'](_actions['var'], _actions['step_size'])
-    #     if keys[key[0]]:
-    #         _actions['action_p'](_actions['var'], _actions['step_size'])
-    #     if keys[key[1]]:
-    #         _actions['action_n'](_actions['var'], _actions['step_size'])
+    for key, _actions in actions:
+        if not keys[key[0]] and not keys[key[1]]:
+            _actions['neither'](_actions['var'], _actions['step_size'])
+        if keys[key[0]]:
+            _actions['action_p'](_actions['var'], _actions['step_size'])
+        if keys[key[1]]:
+            _actions['action_n'](_actions['var'], _actions['step_size'])
 
     draw_at = 10
     for key, value in _vars.iteritems():

@@ -1,4 +1,5 @@
-import serial, sys, os, struct
+import serial, sys, os, struct, time
+import serial.tools.list_ports as list_ports
 
 COMMANDS = {
     'CHANGEMODE'  : b'\x00',
@@ -23,11 +24,11 @@ def find_com_port():
         if DEVICE_HEX + '_' in search:
             print "Using " + port[0]
             comport = port[0]
-        if not comport:
-            print "Device not found in com ports"
-            return None
-        else:
-            return comport
+    if not comport:
+        print "Device not found in com ports"
+        return None
+    else:
+        return comport
 
 def create_height_command(height):
     ret = COMMANDS['SET_HEIGHT']
@@ -50,7 +51,7 @@ def create_rotation_command(xrot, yrot):
 def connect_to_robot():
     con = None
 
-    if len(sys.argv) < 2 and os.name == 'nt':
+    if os.name == 'nt':
         comport = find_com_port()
     elif len(sys.argv) < 2:
         comport = '/dev/rfcomm0'

@@ -44,7 +44,7 @@ static uint8_t command_lengths[] = {
 	[SENSOR_DATA] = 4*6+2, // 5 IR-sensorer, 1 gyro och 1 angular rate
 	[SET_HEIGHT]  = 4, // 1 double
 	[ROTATION]    = 4+4,
-	[PD_DATA]     = 4*3 // Error + P + D
+	[PD_DATA]     = 4*4 // Error + P + D + Adjustment
 };
 
 // [Kommando] | ska till | enhet
@@ -121,6 +121,7 @@ typedef union {
 		double error;
 		double p;
 		double d;
+		double adjustment;
 	};
 	Bus_data bus_data;
 } PD_Data;
