@@ -86,8 +86,8 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
 		left_step_s, right_step_s,
 		cur_rotation, height, step_height,
 		cur_x_rotation, cur_y_rotation;
-	double interpolation = 30;
-	double rot_interpolation = 40;
+	double interpolation = 20;
+	double rot_interpolation = 20;
 
 	// Börja mitt i ett steg
 	at += 0.25;

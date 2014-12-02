@@ -58,11 +58,10 @@ void send_move_data(double forward, double side, double turn) {
 
 Sensor_data getSensorData() {
 	volatile Sensor_data sensor_data;
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
-		fetch_data(SENSOR, &master_data_to_receive);
-		sensor_data = (Sensor_data)master_data_to_receive;
-	}
+	master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
+	fetch_data(SENSOR, &master_data_to_receive);
+	sensor_data = (Sensor_data)master_data_to_receive;
+
 	return sensor_data;
 }
 
@@ -137,74 +136,59 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 }
 
 void waitForGyro(double deg) {
-	//double startGyro = getSensorData().gyro;
-	//volatile Sensor_data sensor_data;
-	//do
-	//{
-		//_delay_ms(20);
-		//sensor_data = getSensorData();
-		//
-	//} while (fabs(sensor_data.gyro - startGyro) < deg);
-	_delay_ms(2200);
+	double startGyro = getSensorData().gyro;
+	volatile Sensor_data sensor_data;
+	do
+	{
+		_delay_ms(20);
+		sensor_data = getSensorData();
+		
+	} while (fabs(sensor_data.gyro - startGyro) < deg);
+	
+	//Turn with delay
+	//_delay_ms(2200);
+}
+
+void celebrate(void) {
+	Bus_data stop;
+	stop.id = STOP_TIMER;
+	stop.count =  command_lengths[STOP_TIMER];
+	send_data(which_device[STOP_TIMER], stop);
+	send_move_data(0, 0, 0);//stop
+	
+	autoMode = 0;
+	TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
+	TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
 }
 
 void makeDecision(void) {
 	volatile Sensor_data sensor_data = getSensorData();
 	
-	//if(sensor_data.f < 30)
-	//{
-		//send_move_data(0, 0, 0);//stop
-		//TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
-		//TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
-		//pdFlag  = 0;
-		//makeDecisionFlag = 0;
-	//}
-	
-	if(sensor_data.fr<150) {
-		if(sensor_data.fl<150) {
-
-			//send_move_data(0.5, 0, 0);//go forward
-			
-		}else {
-			if(sensor_data.f<30) {
-				send_move_data(0, 0, -0.8);//turn left
-				waitForGyro(90);//Wait for 90 degree turn, by asking gyro
-				send_move_data(0.5, 0, 0);//go forward
-				waitForCorrectValues();
-			}else {
-				if(sensor_data.fr<80) {
-					_delay_ms(500);
-					send_move_data(0.5, 0, -0.8);//turn left
-					waitForGyro(90);//Wait for 90 degree turn, by asking gyro
-					send_move_data(0.5, 0, 0);//go forward
-					waitForCorrectValues();
-				}
-			}
-		}
-	}else {
-		if(sensor_data.f<30) {
-			send_move_data(0, 0, 0.8);//turn right
-			waitForGyro(90);//Wait for 90 degree turn, by asking gyro
+	if(sensor_data.fr>150 && sensor_data.fl>150) {
+		celebrate();
+	} else if(sensor_data.fl>150) {
+		_delay_ms(1000);
+		sensor_data = getSensorData();
+		_delay_ms(125);
+		if(sensor_data.fr>150) {
+			celebrate();
+		} else {
+			send_move_data(0.5, 0, -0.8);//turn left
+			waitForGyro(70);//Wait for 90 degree turn, by asking gyro
 			send_move_data(0.5, 0, 0);//go forward
 			waitForCorrectValues();
-		}else {
-			if(sensor_data.fl<80) {
-				_delay_ms(500);
-				send_move_data(0.5, 0, 0.8);//turn right
-				waitForGyro(90);//Wait for 90 degree turn, by asking gyro
-				send_move_data(0.5, 0, 0);//go forward
-				waitForCorrectValues();
-			}else {
-				Bus_data stop;
-				stop.id = STOP_TIMER;
-				stop.count =  command_lengths[STOP_TIMER];
-				send_data(which_device[STOP_TIMER], stop);//celebrate
-				send_move_data(0, 0, 0);//stop
-				
-				autoMode = 0;
-				TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
-				TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
-			}
+		}
+	} else if(sensor_data.fr>150) {
+		_delay_ms(1000);
+		sensor_data = getSensorData();
+		_delay_ms(125);
+		if(sensor_data.fl>150) {
+			celebrate();
+		} else {
+			send_move_data(0.5, 0, 0.8);//turn right
+			waitForGyro(70);//Wait for 90 degree turn, by asking gyro
+			send_move_data(0.5, 0, 0);//go forward
+			waitForCorrectValues();
 		}
 	}
 }
