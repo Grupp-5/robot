@@ -37,6 +37,11 @@ Bus_data data_to_receive = {0};
 Bus_data master_data_to_send = {0};
 Bus_data master_data_to_receive = {0};
 	
+typedef enum {
+	LEFT,
+	RIGHT,
+} Direction;
+	
 void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t data_array[]) {
 	master_data_to_send.id = data_id;
 	master_data_to_send.count = arg_count+2;
@@ -149,6 +154,23 @@ void waitForGyro(double deg) {
 	//_delay_ms(2200);
 }
 
+void waitForBackSensor(Direction dir) {
+	volatile Sensor_data sensor_data;
+	double sensor;
+	do
+	{
+		sensor_data = getSensorData();
+		if(dir == LEFT){
+			sensor = sensor_data.bl;
+		}else{
+			sensor = sensor_data.br;
+		}
+		_delay_ms(20);
+		
+	} while (sensor < 70);
+	
+}
+
 void celebrate(void) {
 	Bus_data stop;
 	stop.id = STOP_TIMER;
@@ -156,9 +178,11 @@ void celebrate(void) {
 	send_data(which_device[STOP_TIMER], stop);
 	send_move_data(0, 0, 0);//stop
 	
-	autoMode = 0;
 	TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
 	TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
+	autoMode = 0;
+	pdFlag = 0;
+	makeDecisionFlag = 0;
 }
 
 void makeDecision(void) {
@@ -167,9 +191,9 @@ void makeDecision(void) {
 	if(sensor_data.fr>150 && sensor_data.fl>150) {
 		celebrate();
 	} else if(sensor_data.fl>150) {
-		_delay_ms(1000);
+		waitForBackSensor(LEFT);
 		sensor_data = getSensorData();
-		_delay_ms(125);
+		_delay_ms(25);
 		if(sensor_data.fr>150) {
 			celebrate();
 		} else {
@@ -179,9 +203,9 @@ void makeDecision(void) {
 			waitForCorrectValues();
 		}
 	} else if(sensor_data.fr>150) {
-		_delay_ms(1000);
+		waitForBackSensor(RIGHT);
 		sensor_data = getSensorData();
-		_delay_ms(125);
+		_delay_ms(25);
 		if(sensor_data.fl>150) {
 			celebrate();
 		} else {
