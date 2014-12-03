@@ -2,7 +2,7 @@
  * Comunication.c
  *
  * Created: 2014-11-04 10:15:58
- *  Author: erima694 & eribo740
+ *  Author: erima694, eribo740, geoza435
  */ 
 
 #include <avr/io.h>
@@ -11,6 +11,7 @@
 #include <common.h>
 #include <modulkom.h>
 #include "Communication.h"
+#include "queue.h"
 
 //Set CPU clock
 #define F_CPU 14745600UL
@@ -54,26 +55,22 @@ ISR(PCINT0_vect) {
 	}
 }
 
+queue data_buffer;
+
 //Data received interrupt
 ISR(USART1_RX_vect) {
 	uint8_t command = UDR1;
-	uint8_t data[MAX_DATA];
+	uint8_t data[MAX_DATA] = {0};
+	// Tillverka en Bus_data manuellt
+	data[0] = command_lengths[command] + 2;
+	data[1] = command;
 	// Vänta på mer data om det är vettigt
-	for (uint8_t c = 0; c < command_lengths[command]; c++) {
+	for (uint8_t c = 2; c < command_lengths[command] + 2; c++) {
 		loop_until_bit_is_set(UCSR1A, RXC1);
 		data[c] = UDR1;
 	}
-
-	sei(); // TODO: Spara undan data och skicka det vidare i typ main()
-	// Skicka vidare kommandot om det inte var avsett för komm-enheten
-	if (which_device[command] != COMMUNICATION) {
-		send_to_bus(which_device[command],
-		            command,
-		            command_lengths[command],
-		            data);
-	} else {
-		// Ska kommunikationsenheten aldrig göra nåt?
-	}
+	// Lägg till i kö som avverkas i main-loop
+	enqueue(&data_buffer, *(Bus_data*) &data);
 }
 
 //Initialize the USART
@@ -142,6 +139,9 @@ int main(void) {
 	UCSR1B |= (1<<RXCIE1);//Enable USART receive interrupt
 	USART_Init();//Initialize USART1
 	initTimer();
+
+	Bus_data data;
+
 	sei();//Enable interrupts in status register
     while(1) {
 		if (poll == 1) {
@@ -157,6 +157,18 @@ int main(void) {
 
 			sei();
 			poll = 0;
+		}
+
+		// TODO: Inte säker på om det är vettigt med en loop här.
+		while (!empty(&data_buffer))
+		{
+			data = dequeue(&data_buffer);
+			// Skicka vidare kommandot om det inte var avsett för komm-enheten
+			if (which_device[data.id] != COMMUNICATION) {
+				send_data(which_device[data.id], data);
+			} else {
+				// Ska kommunikationsenheten aldrig göra nåt?
+			}
 		}
     }
 }
