@@ -42,11 +42,9 @@ void send_move_data(double forward, double side, double turn) {
 
 Sensor_data getSensorData() {
 	volatile Sensor_data sensor_data;
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
-		fetch_data(SENSOR, &master_data_to_receive);
-		sensor_data = (Sensor_data)master_data_to_receive;
-	}
+	master_data_to_receive.count = command_lengths[SENSOR_DATA]+2;
+	fetch_data(SENSOR, &master_data_to_receive);
+	sensor_data = (Sensor_data)master_data_to_receive;
 	return sensor_data;
 }
 
