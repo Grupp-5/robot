@@ -38,7 +38,7 @@ void moveLegTo(uint8_t legid, double x, double y, double z)
 	SetPositionAX(LEGS[legid-1][TIBIA], tibia_beta );
 }
 
-#define start_z -12
+#define start_z -10
 
 // "Världs"-koordinater, sett från mitt på roboten.
 // Positiva Y är framåt, positiva X är åt höger.
@@ -86,8 +86,8 @@ void stepAt(double at, double step_size_forward, double step_size_side, double r
 		left_step_s, right_step_s,
 		cur_rotation, height, step_height,
 		cur_x_rotation, cur_y_rotation;
-	double interpolation = 20;
-	double rot_interpolation = 20;
+	double interpolation = 10;
+	double rot_interpolation = 10;
 
 	// Börja mitt i ett steg
 	at += 0.25;
