@@ -30,9 +30,9 @@ def find_com_port():
     else:
         return comport
 
-def create_height_command(height):
-    ret = COMMANDS['SET_HEIGHT']
-    ret += struct.pack('f', height)
+def create_changemode_command(mode):
+    ret = COMMANDS['CHANGEMODE']
+    ret += struct.pack('B', mode)
     return ret
 
 def create_move_command(forward, side, rotation):
@@ -41,12 +41,29 @@ def create_move_command(forward, side, rotation):
         ret += struct.pack('f', x)
     return ret
 
+def create_p_command(p):
+    ret = COMMANDS['SET_P']
+    ret += struct.pack('f', p)
+    return ret
+
+def create_d_command(p):
+    ret = COMMANDS['SET_D']
+    ret += struct.pack('f', p)
+    return ret
+
+def create_height_command(height):
+    ret = COMMANDS['SET_HEIGHT']
+    ret += struct.pack('f', height)
+    return ret
+
 def create_rotation_command(xrot, yrot):
     ret = COMMANDS['ROTATION']
     for x in [xrot, yrot]:
         ret += struct.pack('f', x)
     return ret
 
+def print_raw(raw):
+    print "".join(["{:02x}".format(ord(c)) for c in raw])
 
 def connect_to_robot():
     con = None

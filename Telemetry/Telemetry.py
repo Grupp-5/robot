@@ -1,7 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import time
 import thread
 
 from serial_robot import *
+from robot_plotter import *
 con = connect_to_robot()
 
 import math as m
@@ -10,7 +13,7 @@ from pygame.locals import *
 
 pygame.init()
 size = width, height = 1024, 764
-black = 0, 0, 0
+black = 10, 10, 10
 red = 200, 0, 0
 screen = pygame.display.set_mode(size)
 
@@ -47,7 +50,80 @@ _vars = {
     'height'  : 0,
     'xrot'    : 0,
     'yrot'    : 0,
+    'no_move' : False,
 }
+
+ALL_PLOTS = create_arrays()
+
+def toggle_plots():
+    global ALL_PLOTS
+    if toggle_plots.off:
+        toggle_plots.win = pg.GraphicsWindow(title="Telemetri")
+        toggle_plots.win.resize(1000,1000)
+        pg.setConfigOptions(antialias=True)
+
+        create_plots(ALL_PLOTS, toggle_plots.win)
+
+        toggle_plots.timer = pg.QtCore.QTimer()
+        toggle_plots.timer.timeout.connect(make_updater(ALL_PLOTS))
+        toggle_plots.timer.start(100)
+
+        toggle_plots.off = False
+    else:
+        toggle_plots.timer.stop()
+        # lol dunno
+        toggle_plots.win.hide()
+        toggle_plots.win.close()
+        toggle_plots.win = None
+
+        toggle_plots.off = True
+
+toggle_plots.off = True
+toggle_plots.timer = None
+
+def plots_clear():
+    global ALL_PLOTS
+    clear_plots(ALL_PLOTS)
+
+def send_go_stop():
+    if not send_go_stop.started:
+        print "Sending changemode {}.".format(1)
+        _vars['no_move'] = True
+        time.sleep(0.05*4)
+        con.write(create_changemode_command(1))
+        send_go_stop.started = True
+    else:
+        print "Sending changemode {}.".format(0)
+        con.write(create_changemode_command(0))
+        time.sleep(0.05*4)
+        _vars['no_move'] = False
+        send_go_stop.started = False
+send_go_stop.started = False
+
+def send_p():
+    dialog = QtGui.QInputDialog()
+    text, ok = dialog.getDouble(None, 'Set P', 'P', decimals=10)
+    if ok:
+        con.write(create_p_command(float(text)))
+
+def send_d():
+    dialog = QtGui.QInputDialog()
+    text, ok = dialog.getDouble(None, 'Set D', 'D', decimals=10)
+    if ok:
+        con.write(create_d_command(float(text)))
+
+def app_quit():
+    sys.exit(0)
+
+single_actions = [
+    (K_p, toggle_plots), # Start / Stop plots
+    (K_c, plots_clear),  # Clear        plots
+    (K_g, send_go_stop), # Go / Stop auto mode
+    (K_h, None), # Save plots
+    (K_ESCAPE, app_quit),
+    (K_t, send_p),
+    (K_y, send_d),
+]
 
 actions = [
     ((K_w, K_s),
@@ -64,17 +140,11 @@ actions = [
      {'action_p' : inc, 'action_n' : dec, 'neither': no_action, 'var': 'yrot', 'step_size': 0.1}),
 ]
 
-def print_raw(raw):
-    print "".join(["{:02x}".format(ord(c)) for c in raw])
-
-def reader():
-    while True:
-        print_raw(con.read(size=4*5))
-
-
-
 def command_sender():
     while 1:
+        if _vars['no_move']:
+            time.sleep(1)
+            continue
         con.write(create_move_command(_vars['f_speed'], _vars['s_speed'], _vars['r_speed']))
         time.sleep(0.05)
         con.write(create_height_command(_vars['height']))
@@ -84,14 +154,19 @@ def command_sender():
         print _vars['f_speed'], _vars['s_speed'], _vars['r_speed'], _vars['height']
 
 t = thread.start_new_thread(command_sender, ())
-reader_t = thread.start_new_thread(reader, ())
+reader_t = thread.start_new_thread(create_reader(ALL_PLOTS, con), ())
 
+## TODO: Ifsatser beroende på om man har en joystick eller inte inkopplad
+#print j.get_numaxes()
 #j = pygame.joystick.Joystick(0)
 #j.init()
 
-#print j.get_numaxes()
 
 MAX_MARGIN = 0.05
+
+IS_PRESSED = {}
+for key, action in single_actions:
+    IS_PRESSED[key] = False
 
 while 1:
     pygame.event.pump()
@@ -123,6 +198,14 @@ while 1:
         if keys[key[1]]:
             _actions['action_n'](_actions['var'], _actions['step_size'])
 
+    for key, _action in single_actions:
+        if not IS_PRESSED[key] and keys[key]:
+            IS_PRESSED[key] = True
+            if _action:
+                _action()
+        elif not keys[key]:
+            IS_PRESSED[key] = False
+
     draw_at = 10
     for key, value in _vars.iteritems():
         draw_height = -value*height/2
@@ -143,3 +226,4 @@ while 1:
         if event.type == pygame.QUIT: sys.exit()
 
     pygame.display.flip()
+    pg.QtGui.QApplication.processEvents()
