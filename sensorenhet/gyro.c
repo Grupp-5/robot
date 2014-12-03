@@ -101,7 +101,7 @@ uint16_t read_ar_data(void) {
 int ar_degrees(uint16_t adc_code)
 {
 	volatile int conversion = (adc_code * 25/12) + 400;
-	volatile int offset = 2507;
+	volatile int offset = 2508;
 	volatile double gain = 6.67; //double gain = 6.67;
 	return (conversion - offset) / gain;	// 70ish = 90 Grader
 	//return conversion;
@@ -114,7 +114,7 @@ int16_t fetch_angular_rate(void) {
 }
 
 double current_degree = 0;
-#define  DATA_POINTS 50
+#define  DATA_POINTS 40
 int16_t arates[DATA_POINTS];
 int16_t current_arate;
 
