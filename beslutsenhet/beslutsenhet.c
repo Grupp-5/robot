@@ -2,7 +2,7 @@
  * beslutsenhet.c
  *
  * Created: 2014-11-13 14:10:27
- *  Author: erima694 & eribo740
+ *  Author: erima694, eribo740, geoza435
  */ 
 
 
@@ -60,10 +60,13 @@ void waitForCorrectValues()
 }
 
 double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
-double P = 0.01; //Constant for the proportional part
-double D = 0.1; //Constant for the derivative part
+double P = 0.005; // Constant for the proportional part
+double D = 0.02;  // Constant for the derivative part
 
 #define ERROR_COUNT 10
+
+double delta_t = 0.1;
+
 double errors[ERROR_COUNT] = {0};
 uint8_t current_error = 0; // Nuvarande error i errors-arrayen
 double prevError = 0; //The previous error
@@ -82,16 +85,14 @@ void nextError() {
 
 void pdAlgoritm(double distanceRight, double distanceLeft) {
 	errors[current_error] = distanceRight - distanceLeft;
-	nextError();
 
 	double error = error_mean();
 
-	double d_adjustment = 0;
-	double p_adjustment = 0;
-	double adjustment = 0;
+	double d_adjustment, p_adjustment, adjustment = 0;
 
-	d_adjustment = D*(error - prevError);
-	p_adjustment = P*error;
+	d_adjustment = D*(error - prevError)/delta_t;
+	p_adjustment = P*errors[current_error];
+	nextError();
 
 	adjustment = p_adjustment + d_adjustment;
 	adjustment = fmax(fmin(adjustment, MAX_ADJUSTMENT), -MAX_ADJUSTMENT);
@@ -109,7 +110,7 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 
 	send_data(COMMUNICATION, pd_data.bus_data);
 
-	send_move_data(0.5, 0, adjustment);
+	send_move_data(0.6, adjustment, adjustment);
 }
 
 void waitForGyro(double deg) {
@@ -124,64 +125,28 @@ void waitForGyro(double deg) {
 	_delay_ms(2200);
 }
 
+
+void enableTimers()
+{
+	TIMSK1 |= (1<<TOIE1);  // Enable timer overflow interrupt for Timer1
+	TIMSK3 |= (1<<OCIE3A); // Enable interrupts on CTC mode
+}
+
+void disableTimers()
+{
+	TIMSK1 &= ~(1<<TOIE1);  // Disable timer overflow interrupt for Timer1
+	TIMSK3 &= ~(1<<OCIE3A); // Disable timer compare interrupt for Timer3
+}
+
 void makeDecision(void) {
 	volatile Sensor_data sensor_data = getSensorData();
-	
-	//if(sensor_data.f < 30)
-	//{
-		//send_move_data(0, 0, 0);//stop
-		//TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
-		//TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
-		//pdFlag  = 0;
-		//makeDecisionFlag = 0;
-	//}
-	
-	if(sensor_data.fr<150) {
-		if(sensor_data.fl<150) {
 
-			//send_move_data(0.5, 0, 0);//go forward
-			
-		}else {
-			if(sensor_data.f<30) {
-				send_move_data(0, 0, -0.8);//turn left
-				waitForGyro(90);//Wait for 90 degree turn, by asking gyro
-				send_move_data(0.5, 0, 0);//go forward
-				waitForCorrectValues();
-			}else {
-				if(sensor_data.fr<80) {
-					_delay_ms(500);
-					send_move_data(0.5, 0, -0.8);//turn left
-					waitForGyro(90);//Wait for 90 degree turn, by asking gyro
-					send_move_data(0.5, 0, 0);//go forward
-					waitForCorrectValues();
-				}
-			}
-		}
-	}else {
-		if(sensor_data.f<30) {
-			send_move_data(0, 0, 0.8);//turn right
-			waitForGyro(90);//Wait for 90 degree turn, by asking gyro
-			send_move_data(0.5, 0, 0);//go forward
-			waitForCorrectValues();
-		}else {
-			if(sensor_data.fl<80) {
-				_delay_ms(500);
-				send_move_data(0.5, 0, 0.8);//turn right
-				waitForGyro(90);//Wait for 90 degree turn, by asking gyro
-				send_move_data(0.5, 0, 0);//go forward
-				waitForCorrectValues();
-			}else {
-				Bus_data stop;
-				stop.id = STOP_TIMER;
-				stop.count =  command_lengths[STOP_TIMER];
-				send_data(which_device[STOP_TIMER], stop);//celebrate
-				send_move_data(0, 0, 0);//stop
-				
-				autoMode = 0;
-				TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
-				TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
-			}
-		}
+	if(sensor_data.f < 30)
+	{
+		disableTimers();
+		pdFlag = false;
+		makeDecisionFlag = false;
+		send_stop = true;
 	}
 }
 
@@ -191,24 +156,24 @@ ISR(TIMER1_OVF_vect) {
 	TCNT1L = 0x00; //Reset Timer1 low register
 }
 
-ISR(TIMER3_OVF_vect) {
-	pdFlag = 1;
-	TCNT3H = 0xFF-(deltaT >> 8); //Reset Timer3 high register
-	TCNT3L = 0xFF-(deltaT & 0x00FF); //Reset Timer3 low register
+ISR(TIMER3_COMPA_vect) {
+	pdFlag = true;
 }
 
-//Initialize the timer interrupt to happen
-//approximately once per second 
+#define PD_PRESCALE 256
+// Initialize one timer interrupt to happen approximately once per
+// second and one every delta_t
 void initTimer(void) {
 	//TIMSK1 = (1<<TOIE1);//Enable timer overflow interrupt for Timer1
 	TCNT1H = 0x80; //Initialize Timer1 high register
 	TCNT1L = 0x00; //Initialize Timer1 low register
 	TCCR1B = (1<<CS11)|(1<<CS10);//Use clock/64 prescaler
-	
-	//TIMSK3 = (1<<TOIE3);//Enable timer overflow interrupt for Timer3
-	TCNT3H = 0x00; //Initialize Timer3 high register
-	TCNT3L = 0x00; //Initialize Timer3 low register
-	TCCR3B = (1<<CS31)|(1<<CS30);//Use clock/64 prescaler
+
+	// Use clock/256 prescaler and immediate compare mode
+	TCCR3B = (1<<CS32) | (1<<WGM32);
+	// Compare match every delta_t seconds
+	// OCRn = (clock_speed / Prescaler_value) * Desired_time_in_Seconds - 1
+	OCR3A = (F_CPU/PD_PRESCALE) * delta_t - 1;
 }
 
 Bus_data prepare_data() {
@@ -232,13 +197,13 @@ void interpret_data(Bus_data data){
 		
 		autoMode = data_to_receive.data[0];
 		if(autoMode == 1) {
-			TIMSK1 |= (1<<TOIE1);//Enable timer overflow interrupt for Timer1
-			TIMSK3 |= (1<<TOIE3);//Enable timer overflow interrupt for Timer3
+			enableTimers();
+
 			send_stop = false;
 		}else {
-			TIMSK1 &= ~(1<<TOIE1);//Disable timer overflow interrupt for Timer1
-			TIMSK3 &= ~(1<<TOIE3);//Disable timer overflow interrupt for Timer3
+			disableTimers();
 			send_stop = true;
+			pdFlag = false;
 		}
 		
 	}
@@ -247,34 +212,32 @@ void interpret_data(Bus_data data){
 int main(void) {
 	set_as_slave(F_CPU, prepare_data, interpret_data, DECISION);
 	set_as_master(F_CPU);
-	
-	P = 1.0/40.0;
-	D = (1.0/5.0)*(double)0x4FFF;
+
 	makeDecisionFlag = 0;
-	pdFlag = 0;
+	pdFlag = false;
 	autoMode = 0;
 	turn = 1;
-	stableValues = 2;
-	
+
 	initTimer();
 	sei();
     while(1) {
-		
-        if(makeDecisionFlag == 1) {
+
+        if(makeDecisionFlag) {
 			makeDecision();
 			makeDecisionFlag = 0;
 		}
 		
 		_delay_ms(20);
-		
-		if(pdFlag == 1) {
+
+		if(pdFlag) {
 			volatile Sensor_data sensor_data = getSensorData();
 			pdAlgoritm(sensor_data.br, sensor_data.bl);
-			pdFlag = 0;
+			pdFlag = false;
 		}
 		
 		if(send_stop) {
 			send_move_data(0, 0, 0);
+			send_stop = false;
 		}
 
 		_delay_ms(20);
