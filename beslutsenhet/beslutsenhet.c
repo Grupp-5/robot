@@ -86,58 +86,60 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 	double turn_adjustment = 0;
 	double side_adjustment = 0;
 	
-	if(turn == 1) {
-		if(stableValues == 3) {
-			turn_adjustment =  D*((error+prevError)/2 - prevError)/(double)deltaT;
+	if(distanceRight < 70 && distanceLeft < 70) {
+		if(turn == 1) {
+			if(stableValues == 3) {
+				turn_adjustment =  D*((error+prevError)/2 - prevError)/(double)deltaT;
 			
-			if(turn_adjustment > MAX_ADJUSTMENT)
-			{
-				turn_adjustment = MAX_ADJUSTMENT;
-			}
-			else if(turn_adjustment < -MAX_ADJUSTMENT)
-			{
-				turn_adjustment = -MAX_ADJUSTMENT;
-			}
+				if(turn_adjustment > MAX_ADJUSTMENT)
+				{
+					turn_adjustment = MAX_ADJUSTMENT;
+				}
+				else if(turn_adjustment < -MAX_ADJUSTMENT)
+				{
+					turn_adjustment = -MAX_ADJUSTMENT;
+				}
 			
-			if(fabs(turn_adjustment) < 0.01)
-			{
-				turn = 0;
+				if(fabs(turn_adjustment) < 0.01)
+				{
+					turn = 0;
+				}
+			}else {
+				stableValues++;
 			}
-		}else {
-			stableValues++;
-		}
 		
-	} else {
-		side_adjustment = P*error;
-		if(side_adjustment > MAX_ADJUSTMENT)
-		{
-			side_adjustment = MAX_ADJUSTMENT;
-		}
-		else if(side_adjustment < -MAX_ADJUSTMENT)
-		{
-			side_adjustment = -MAX_ADJUSTMENT;
-		}
+		} else {
+			side_adjustment = P*error;
+			if(side_adjustment > MAX_ADJUSTMENT)
+			{
+				side_adjustment = MAX_ADJUSTMENT;
+			}
+			else if(side_adjustment < -MAX_ADJUSTMENT)
+			{
+				side_adjustment = -MAX_ADJUSTMENT;
+			}
 		
-		if(fabs(side_adjustment) < 0.18)
-		{
-			turn = 1;
-			stableValues = 0;
+			if(fabs(side_adjustment) < 0.18)
+			{
+				turn = 1;
+				stableValues = 0;
+			}
 		}
+	
+		PD_Data pd_data = {
+			.id = PD_DATA,
+			.count = command_lengths[PD_DATA] + 2,
+			.error = error,
+			.p = side_adjustment,
+			.d = turn_adjustment
+		};
+	
+		send_data(COMMUNICATION, pd_data.bus_data);
+	
+		prevError = (error+prevError)/2;
+	
+		send_move_data(0.5, side_adjustment, turn_adjustment);
 	}
-	
-	PD_Data pd_data = {
-		.id = PD_DATA,
-		.count = command_lengths[PD_DATA] + 2,
-		.error = error,
-		.p = side_adjustment,
-		.d = turn_adjustment
-	};
-	
-	send_data(COMMUNICATION, pd_data.bus_data);
-	
-	prevError = (error+prevError)/2;
-	
-	send_move_data(0.5, side_adjustment, turn_adjustment);
 }
 
 void waitForGyro(double deg) {
@@ -201,6 +203,8 @@ void makeDecision(void) {
 			waitForGyro(70);//Wait for 90 degree turn, by asking gyro
 			send_move_data(0.5, 0, 0);//go forward
 			waitForCorrectValues();
+			stableValues = 2;
+			turn = 1;
 		}
 	} else if(sensor_data.fr>150) {
 		waitForBackSensor(RIGHT);
@@ -213,6 +217,8 @@ void makeDecision(void) {
 			waitForGyro(70);//Wait for 90 degree turn, by asking gyro
 			send_move_data(0.5, 0, 0);//go forward
 			waitForCorrectValues();
+			stableValues = 2;
+			turn = 1;
 		}
 	}
 }
