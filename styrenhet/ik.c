@@ -40,7 +40,7 @@ Matrix MIRROR_XY = {
 };
 
 #define M_X_OFFSET 10
-#define O_X_OFFSET 5.55
+#define O_X_OFFSET 6
 #define O_Y_OFFSET 12
 
 
