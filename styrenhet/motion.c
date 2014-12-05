@@ -58,6 +58,63 @@ double z_step(double x) {
 	if(ret < 0) {
 		ret = 0;
 	}
+
+	// Sågtandsfunktion ( _|\_|\ )
+	/*
+	double ret = -2*x+2*floor(x-0.25) + 1.5;
+	if(ret < 0) {
+		ret = 0;
+	}
+	*/
+
+	// Skiftad triangelfunktion ( _/\_/\_ )
+	/*
+	x -= 0.25;
+	double ret = 11*x;
+	if (x > 0.09)
+		ret = -2.5*x+1.25;
+	if (x > 1-0.09)
+		ret = 11*(x-1);
+	if (x > 1 + 0.09)
+		ret = -2.5*(x-1) + 1.25;
+	if (ret < 0) {
+		ret = 0;
+	}
+	*/
+	// Sinus och sen omvänd sinus ( _(\_(\_ )
+	/*
+	x -= 0.25;
+	double ret = sin(x*2*M_PI);
+	if (x > 0.25)
+	ret = sin(2*M_PI*x-3*M_PI_2) + 1;
+	if (x > 0.5)
+		ret = 0;
+	if (x > 1)
+		ret = sin(x*2*M_PI);
+	if (x > 1.25)
+		ret = sin(2*M_PI*x-3*M_PI_2) + 1;
+	if (x > 1.5)
+		ret = 0;
+	if (ret < 0)
+		ret = 0;
+	*/
+	// Skiftad sinus med omvänd sinus ( _/(_/(_ )
+	/*
+	x -= 0.25;
+	double ret = sin(x*4*M_PI);
+	if (x > 0.1)
+		ret = sin(1.05*M_PI*x+M_PI/1.07)+1.05;
+	if (x > 0.5)
+		ret = 0;
+	if (x > 1)
+		ret = sin(x*4*M_PI);
+	if (x > 1.1)
+		ret = sin(1.05*M_PI*x-M_PI/9)+1.05;
+	if (x > 1.5)
+		ret = 0;
+	if (ret < 0)
+		ret = 0;
+	*/
 	return ret;
 }
 
