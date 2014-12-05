@@ -147,6 +147,7 @@ void makeDecision(void) {
 		pdFlag = false;
 		makeDecisionFlag = false;
 		send_stop = true;
+		autoMode = false;
 	}
 }
 
@@ -196,7 +197,7 @@ void interpret_data(Bus_data data){
 	}else if(data_to_receive.id == CHANGEMODE) {
 		
 		autoMode = data_to_receive.data[0];
-		if(autoMode == 1) {
+		if(autoMode) {
 			enableTimers();
 
 			send_stop = false;
