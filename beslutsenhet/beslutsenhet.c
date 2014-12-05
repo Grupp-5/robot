@@ -113,18 +113,27 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 	send_move_data(0.6, adjustment, adjustment);
 }
 
-void waitForGyro(double deg) {
-	//double startGyro = getSensorData().gyro;
-	//volatile Sensor_data sensor_data;
-	//do
-	//{
-		//_delay_ms(20);
-		//sensor_data = getSensorData();
-		//
-	//} while (fabs(sensor_data.gyro - startGyro) < deg);
-	_delay_ms(2200);
-}
+// Blockerar main och snurrar DEG grader samtidigt som den går framåt
+// P-reglerad, D behövdes tydligen inte här.
+void turnTo(double deg) {
+	double recordedDeg = getSensorData().gyro;
+	double goalDeg = recordedDeg - deg;
+	double deg_margin = 5.0;
 
+	double turn_p = 0.02;
+
+	double error = recordedDeg - goalDeg;
+	double adjustment;
+
+	while (fabs(error) > deg_margin)
+	{
+		adjustment = turn_p*error;
+		adjustment = fmax(fmin(adjustment, MAX_ADJUSTMENT), - MAX_ADJUSTMENT);
+		send_move_data(0.6, 0.0, adjustment);
+		error = getSensorData().gyro - goalDeg;
+		_delay_ms(1);
+	}
+}
 
 void enableTimers()
 {
@@ -141,6 +150,13 @@ void disableTimers()
 void makeDecision(void) {
 	volatile Sensor_data sensor_data = getSensorData();
 
+	turnTo(-90.0);
+	disableTimers();
+	pdFlag = false;
+	makeDecisionFlag = false;
+	send_stop = true;
+	autoMode = false;
+	/*
 	if(sensor_data.f < 30)
 	{
 		disableTimers();
@@ -149,6 +165,7 @@ void makeDecision(void) {
 		send_stop = true;
 		autoMode = false;
 	}
+	*/
 }
 
 ISR(TIMER1_OVF_vect) {
@@ -230,12 +247,14 @@ int main(void) {
 		
 		_delay_ms(20);
 
+		/*
 		if(pdFlag) {
 			volatile Sensor_data sensor_data = getSensorData();
 			pdAlgoritm(sensor_data.br, sensor_data.bl);
 			pdFlag = false;
 		}
-		
+		*/
+
 		if(send_stop) {
 			send_move_data(0, 0, 0);
 			send_stop = false;
