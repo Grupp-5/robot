@@ -193,6 +193,7 @@ void makeDecision(void) {
 	if(sensor_data.fr>150 && sensor_data.fl>150) {
 		celebrate();
 	} else if(sensor_data.fl>150) {
+		send_move_data(0.5, 0, 0);//go forward
 		waitForBackSensor(LEFT);
 		sensor_data = getSensorData();
 		_delay_ms(25);
@@ -207,6 +208,7 @@ void makeDecision(void) {
 			turn = 1;
 		}
 	} else if(sensor_data.fr>150) {
+		send_move_data(0.5, 0, 0);//go forward
 		waitForBackSensor(RIGHT);
 		sensor_data = getSensorData();
 		_delay_ms(25);
