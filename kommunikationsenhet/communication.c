@@ -147,15 +147,12 @@ int main(void) {
 		if (poll == 1) {
 			data_to_receive.count = command_lengths[SENSOR_DATA] + 2;
 			fetch_data(SENSOR, &data_to_receive);
-			cli();
 
 			USART_Send_Byte(data_to_receive.id);
 
 			for (uint8_t c = 0; c < data_to_receive.count - 2; c++) {
 				USART_Send_Byte(data_to_receive.data[c]);
 			}
-
-			sei();
 			poll = 0;
 		}
 
