@@ -115,7 +115,7 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 
 // Blockerar main och snurrar DEG grader samtidigt som den går framåt
 // P-reglerad, D behövdes tydligen inte här.
-void turnTo(double deg) {
+void turnTo(double deg, double forward_speed) {
 	double recordedDeg = getSensorData().gyro;
 	double goalDeg = recordedDeg - deg;
 	double deg_margin = 5.0;
@@ -129,7 +129,7 @@ void turnTo(double deg) {
 	{
 		adjustment = turn_p*error;
 		adjustment = fmax(fmin(adjustment, MAX_ADJUSTMENT), - MAX_ADJUSTMENT);
-		send_move_data(0.6, 0.0, adjustment);
+		send_move_data(forward_speed, 0.0, adjustment);
 		error = getSensorData().gyro - goalDeg;
 		_delay_ms(1);
 	}
@@ -147,25 +147,54 @@ void disableTimers()
 	TIMSK3 &= ~(1<<OCIE3A); // Disable timer compare interrupt for Timer3
 }
 
+#define SIDE_MARGIN 80.0 + 70.0 // Höftat
+#define STABLE_COUNT 10
+typedef enum {
+	LEFT,
+	RIGHT
+} Side;
+uint8_t far[2] = {0};
+
+void reset_far() {
+	far[LEFT] = 0;
+	far[RIGHT] = 0;
+}
+
+void celebrate() {
+	send_stop = true;
+	pdFlag = false;
+	autoMode = false;
+	disableTimers();
+}
+
 void makeDecision(void) {
 	volatile Sensor_data sensor_data = getSensorData();
 
-	turnTo(-90.0);
-	disableTimers();
-	pdFlag = false;
-	makeDecisionFlag = false;
-	send_stop = true;
-	autoMode = false;
-	/*
-	if(sensor_data.f < 30)
-	{
-		disableTimers();
-		pdFlag = false;
-		makeDecisionFlag = false;
-		send_stop = true;
-		autoMode = false;
+	if (sensor_data.fl > SIDE_MARGIN) far[LEFT]++;
+	else far[LEFT] = 0;
+
+	if (sensor_data.fr > SIDE_MARGIN) far[RIGHT]++;
+	else far[RIGHT] = 0;
+
+	if (far[LEFT] > STABLE_COUNT && far[RIGHT] > STABLE_COUNT) {
+		celebrate();
+		reset_far();
+		return;
 	}
-	*/
+
+	if (far[LEFT] > STABLE_COUNT) {
+		turnTo(-90.0, 0.6);
+		reset_far();
+		send_move_data(0.6, 0, 0);
+		_delay_ms(2000);
+	}
+
+	if (far[RIGHT] > STABLE_COUNT) {
+		turnTo(90.0, 0.6);
+		reset_far();
+		send_move_data(0.6, 0, 0);
+		_delay_ms(2000);
+	}
 }
 
 ISR(TIMER1_OVF_vect) {
@@ -217,7 +246,6 @@ void interpret_data(Bus_data data){
 		if(autoMode) {
 			enableTimers();
 
-			send_stop = false;
 		}else {
 			disableTimers();
 			send_stop = true;
@@ -247,13 +275,11 @@ int main(void) {
 		
 		_delay_ms(20);
 
-		/*
 		if(pdFlag) {
 			volatile Sensor_data sensor_data = getSensorData();
 			pdAlgoritm(sensor_data.br, sensor_data.bl);
 			pdFlag = false;
 		}
-		*/
 
 		if(send_stop) {
 			send_move_data(0, 0, 0);
