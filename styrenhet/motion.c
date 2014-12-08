@@ -115,12 +115,46 @@ double z_step(double x) {
 	if (ret < 0)
 		ret = 0;
 	*/
+
+	// "ren" triangelfunktion
+	/*
+	x -= 0.25;
+	if(x > 1) x -= 1;
+	double ret = x*4;
+	if (x > 0.25) ret = -x*4 + 2;
+	if (ret < 0) ret = 0;
+	*/
+
+	// Fyrkantspuls
+	/*
+	x -= 0.25;
+	double ret = fmod(ceil(2*x), 2);
+	*/
 	return ret;
 }
 
 // Gå framåt och bakåt (och vänster och höger) vid rätt tillfälle
 double y_step(double x) {
+	// Förskjuten sinus
+	/*
 	return -sin(x*2*M_PI);
+	*/
+	// Triangelvåg
+	/*
+	x = x - floor(x + 0.25);
+	double ret = -x*4;
+	if(x > 0.25) ret = x*4 - 2;
+	*/
+	// Förskjuten triangelvåg som ändå synkas upp
+	double aset = 0.1;
+	x += 0.25 + aset;
+	x = x - floor(x);
+	double ret = -x*2/(0.5 + aset) + 1;
+	if (x > 0.5 + aset) {
+		x -= 0.5 + aset;
+		ret = x*2/(0.5 - aset) - 1;
+	}
+	return ret;
 }
 
 // Snurra åt rätt håll
