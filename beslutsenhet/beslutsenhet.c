@@ -4,8 +4,6 @@
  * Created: 2014-11-13 14:10:27
  *  Author: erima694 & eribo740
  */ 
-
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <common.h>
@@ -18,7 +16,6 @@
 #define F_CPU 8000000UL
 #include <util/delay.h>
 
-
 uint16_t deltaT = 0x6FFF;//Change this to change time between PD-adjustments
 double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
 double P; //Constant for the proportional part
@@ -30,7 +27,6 @@ volatile uint8_t makeDecisionFlag;
 volatile uint8_t pdFlag;
 volatile uint8_t turn;
 volatile uint8_t stableValues;
-
 
 Bus_data data_to_send = {0};
 Bus_data data_to_receive = {0};
@@ -70,17 +66,20 @@ Sensor_data getSensorData() {
 	return sensor_data;
 }
 
-void waitForCorrectValues()
-{
+//Wait until the robot is in a corridor
+//again after a turn
+void waitForCorrectValues() {
 	volatile Sensor_data sensor_data;
-	do
-	{
+	do {
 		sensor_data = getSensorData();
 		_delay_ms(20);
 		
 	} while (sensor_data.bl + sensor_data.br > 75);
 }
 
+//Uses a combination of sidestepping and turning
+//to avoid a change in the distance to the walls
+//due to the rotation
 void pdAlgoritm(double distanceRight, double distanceLeft) {
 	double error = distanceRight - distanceLeft;
 	double turn_adjustment = 0;
@@ -91,38 +90,30 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 			if(stableValues == 3) {
 				turn_adjustment =  D*((error+prevError)/2 - prevError)/(double)deltaT;
 			
-				if(turn_adjustment > MAX_ADJUSTMENT)
-				{
+				if(turn_adjustment > MAX_ADJUSTMENT) {
 					turn_adjustment = MAX_ADJUSTMENT;
-				}
-				else if(turn_adjustment < -MAX_ADJUSTMENT)
-				{
+				} else if(turn_adjustment < -MAX_ADJUSTMENT) {
 					turn_adjustment = -MAX_ADJUSTMENT;
 				}
 			
-				if(fabs(turn_adjustment) < 0.01)
-				{
-					turn = 0;
+				if(fabs(turn_adjustment) < 0.01) {
+					turn = 0;//The robot is walking straight, time to sidestepp
 				}
-			}else {
-				stableValues++;
+			} else {
+				stableValues++;//Wait until the derivative have stabilized
 			}
 		
 		} else {
 			side_adjustment = P*error;
-			if(side_adjustment > MAX_ADJUSTMENT)
-			{
+			if(side_adjustment > MAX_ADJUSTMENT) {
 				side_adjustment = MAX_ADJUSTMENT;
-			}
-			else if(side_adjustment < -MAX_ADJUSTMENT)
-			{
+			} else if(side_adjustment < -MAX_ADJUSTMENT) {
 				side_adjustment = -MAX_ADJUSTMENT;
 			}
 		
-			if(fabs(side_adjustment) < 0.18)
-			{
-				turn = 1;
-				stableValues = 0;
+			if(fabs(side_adjustment) < 0.18) {
+				turn = 1;//The robot is in the middle of the corridor, time to straighten it up
+				stableValues = 0;//The robot needs to wait until the derivative have stabilized 
 			}
 		}
 	
@@ -134,33 +125,32 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 			.d = turn_adjustment
 		};
 	
-		send_data(COMMUNICATION, pd_data.bus_data);
+		send_data(COMMUNICATION, pd_data.bus_data);//Send PD-values to the computer were they can be analyzed
 	
-		prevError = (error+prevError)/2;
+		prevError = (error+prevError)/2;//Removes some of the peaks in the derivative
 	
 		send_move_data(0.5, side_adjustment, turn_adjustment);
 	}
 }
 
+//Wait until the robot has turned deg
+//degrees
 void waitForGyro(double deg) {
 	double startGyro = getSensorData().gyro;
 	volatile Sensor_data sensor_data;
-	do
-	{
+	do {
 		_delay_ms(20);
 		sensor_data = getSensorData();
 		
 	} while (fabs(sensor_data.gyro - startGyro) < deg);
-	
-	//Turn with delay
-	//_delay_ms(2200);
 }
 
+//Wait until the robots back sensor in the direction dir
+//also has arrived in the turn
 void waitForBackSensor(Direction dir) {
 	volatile Sensor_data sensor_data;
 	double sensor;
-	do
-	{
+	do {
 		sensor_data = getSensorData();
 		if(dir == LEFT){
 			sensor = sensor_data.bl;
