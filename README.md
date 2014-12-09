@@ -1,6 +1,13 @@
 robot
 =====
 
+## Beroenden för Telemetri-program
+
+* PyQt4
+* pyqtgraph
+* pygame
+* pyserial
+
 ## Referenser
 [twi-bibliotek](http://digitalcave.ca/resources/avr/lib.jsp)
 
