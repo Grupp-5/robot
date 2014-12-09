@@ -65,7 +65,10 @@ def create_rotation_command(xrot, yrot):
 def print_raw(raw):
     print "".join(["{:02x}".format(ord(c)) for c in raw])
 
-def connect_to_robot():
+def printer(txt):
+    print txt
+
+def connect_to_robot(_printer=printer):
     con = None
 
     if os.name == 'nt':
@@ -75,7 +78,7 @@ def connect_to_robot():
     else:
         comport = sys.argv[1]
 
-    print comport
+    _printer(str(comport))
 
     while not con:
         try:
@@ -86,9 +89,9 @@ def connect_to_robot():
                 bytesize=serial.EIGHTBITS,
                 stopbits=serial.STOPBITS_ONE)
         except Exception as e:
-            print e
-            print "Trying to connect..."
+            _printer(str(e))
+            _printer("Trying to connect...")
             time.sleep(5)
         
-    print "Connected to", con.name
+    _printer("Connected to {}".format(con.name))
     return con
