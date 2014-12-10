@@ -148,7 +148,7 @@ void disableTimers()
 }
 
 #define SIDE_MARGIN 80.0 + 70.0 // Höftat
-#define STABLE_COUNT 10
+#define STABLE_COUNT 4
 typedef enum {
 	LEFT,
 	RIGHT
@@ -176,7 +176,7 @@ void makeDecision(void) {
 	if (sensor_data.fr > SIDE_MARGIN) far[RIGHT]++;
 	else far[RIGHT] = 0;
 
-	if (far[LEFT] > STABLE_COUNT && far[RIGHT] > STABLE_COUNT) {
+	if (far[LEFT] > STABLE_COUNT/2.0 && far[RIGHT] > STABLE_COUNT/2.0) {
 		celebrate();
 		reset_far();
 		return;
@@ -186,14 +186,14 @@ void makeDecision(void) {
 		turnTo(-90.0, 0.6);
 		reset_far();
 		send_move_data(0.6, 0, 0);
-		_delay_ms(2000);
+		waitForCorrectValues();
 	}
 
 	if (far[RIGHT] > STABLE_COUNT) {
 		turnTo(90.0, 0.6);
 		reset_far();
 		send_move_data(0.6, 0, 0);
-		_delay_ms(2000);
+		waitForCorrectValues();
 	}
 }
 
