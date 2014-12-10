@@ -65,7 +65,7 @@ double D = 0.02;  // Constant for the derivative part
 
 #define ERROR_COUNT 10
 
-double delta_t = 0.1;
+double delta_t = 0.05;
 
 double errors[ERROR_COUNT] = {0};
 uint8_t current_error = 0; // Nuvarande error i errors-arrayen
@@ -215,7 +215,7 @@ ISR(TIMER3_COMPA_vect) {
 	pdFlag = true;
 }
 
-#define PD_PRESCALE 256
+#define PD_PRESCALE 64
 // Initialize one timer interrupt to happen approximately once per
 // second and one every delta_t
 void initTimer(void) {
@@ -224,8 +224,8 @@ void initTimer(void) {
 	TCNT1L = 0x00; //Initialize Timer1 low register
 	TCCR1B = (1<<CS11)|(1<<CS10);//Use clock/64 prescaler
 
-	// Use clock/256 prescaler and immediate compare mode
-	TCCR3B = (1<<CS32) | (1<<WGM32);
+	// Use clock/64 prescaler and immediate compare mode
+	TCCR3B = (1<<CS31) | (1<<CS30) | (1<<WGM32);
 	// Compare match every delta_t seconds
 	// OCRn = (clock_speed / Prescaler_value) * Desired_time_in_Seconds - 1
 	OCR3A = (F_CPU/PD_PRESCALE) * delta_t - 1;
