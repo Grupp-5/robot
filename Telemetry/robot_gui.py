@@ -80,6 +80,15 @@ class Form(QtGui.QWidget):
         self.forwardButton = QPushButton(u"&Framåt")
         self.clearButton = QPushButton(u"&Rensa")
         self.goButton = QPushButton(u"&Go")
+
+        self.pEdit = QDoubleSpinBox()
+        self.pEdit.setDecimals(4)
+        self.pEdit.setValue(0.005)
+        self.pEdit.setSingleStep(0.0005)
+        self.dEdit = QDoubleSpinBox()
+        self.dEdit.setDecimals(4)
+        self.dEdit.setValue(0.007)
+        self.dEdit.setSingleStep(0.0005)
         # Consolen
         self.console = QTextEdit()
         self.console.setReadOnly(True)
@@ -100,6 +109,8 @@ class Form(QtGui.QWidget):
         buttonsLayout.addStretch(1)
         buttonsLayout.addWidget(self.clearButton)
         buttonsLayout.addWidget(self.goButton)
+        buttonsLayout.addWidget(self.pEdit)
+        buttonsLayout.addWidget(self.dEdit)
         buttonsLayout.addStretch(1)
 
         # Statistiklayouter
@@ -142,6 +153,8 @@ class Form(QtGui.QWidget):
 
         self.connect(self.clearButton, QtCore.SIGNAL("clicked()"), make_clear_plots(self.plot_arrays))
         self.connect(self.goButton, QtCore.SIGNAL("clicked()"), self.send_go_stop)
+        self.connect(self.pEdit, QtCore.SIGNAL("valueChanged(double)"), self.make_sender(create_p_command, 'P'))
+        self.connect(self.dEdit, QtCore.SIGNAL("valueChanged(double)"), self.make_sender(create_d_command, 'D'))
 
         self.setLayout(mainLayout)
         self.setWindowTitle("Robotdestroyer v1.23 beta [build.{}]".format(random.randint(10000, 99999)))
@@ -175,12 +188,18 @@ class Form(QtGui.QWidget):
     def send_go_stop(self):
         if not self.auto_started:
             self.con.write(create_changemode_command(1))
-            print "Sent changemode {}.".format(1)
+            self.submitCommand(u"Autonomt läge")
             self.auto_started = True
         else:
             self.con.write(create_changemode_command(0))
-            print "Sent changemode {}.".format(0)
+            self.submitCommand(u"Manuellt läge")
             self.auto_started = False
+
+    def make_sender(self, cmd_creater, name):
+        def send_new_value(val):
+            self.submitCommand(u"Nytt {}-värde: {}".format(name, val))
+            self.con.write(cmd_creater(val))
+        return send_new_value
 
 
 def make_clear_plots(plots):
