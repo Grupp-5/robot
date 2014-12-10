@@ -83,6 +83,12 @@ void nextError() {
 	current_error = (current_error + 1) % ERROR_COUNT;
 }
 
+void cleanOldErrors() {
+	for (uint8_t i = 0; i < ERROR_COUNT; i++) {
+		errors[i] = 0;
+	}
+}
+
 void pdAlgoritm(double distanceRight, double distanceLeft) {
 	errors[current_error] = distanceRight - distanceLeft;
 
@@ -110,7 +116,7 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 
 	send_data(COMMUNICATION, pd_data.bus_data);
 
-	send_move_data(0.6, adjustment, adjustment);
+	send_move_data(0.6, adjustment*1.2, adjustment);
 }
 
 // Blockerar main och snurrar DEG grader samtidigt som den går framåt
@@ -187,6 +193,7 @@ void makeDecision(void) {
 		reset_far();
 		send_move_data(0.6, 0, 0);
 		waitForCorrectValues();
+		cleanOldErrors();
 	}
 
 	if (far[RIGHT] > STABLE_COUNT) {
@@ -194,6 +201,7 @@ void makeDecision(void) {
 		reset_far();
 		send_move_data(0.6, 0, 0);
 		waitForCorrectValues();
+		cleanOldErrors();
 	}
 }
 
@@ -245,6 +253,7 @@ void interpret_data(Bus_data data){
 		autoMode = data_to_receive.data[0];
 		if(autoMode) {
 			enableTimers();
+			cleanOldErrors();
 
 		}else {
 			disableTimers();
