@@ -18,6 +18,7 @@
 
 uint16_t deltaT = 0x6FFF;//Change this to change time between PD-adjustments
 double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
+double TURN_MAX_ADJUSTMENT = 0.3; //Constant to stop the robot from turning like crazy
 double P; //Constant for the proportional part
 double D; //Constant for the derivative part
 double prevError = 0; //The previous error
@@ -90,10 +91,10 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 			if(stableValues == 3) {
 				turn_adjustment =  D*((error+prevError)/2 - prevError)/(double)deltaT;
 			
-				if(turn_adjustment > MAX_ADJUSTMENT) {
-					turn_adjustment = MAX_ADJUSTMENT;
-				} else if(turn_adjustment < -MAX_ADJUSTMENT) {
-					turn_adjustment = -MAX_ADJUSTMENT;
+				if(turn_adjustment > TURN_MAX_ADJUSTMENT) {
+					turn_adjustment = TURN_MAX_ADJUSTMENT;
+				} else if(turn_adjustment < -TURN_MAX_ADJUSTMENT) {
+					turn_adjustment = -TURN_MAX_ADJUSTMENT;
 				}
 			
 				if(fabs(turn_adjustment) < 0.01) {
