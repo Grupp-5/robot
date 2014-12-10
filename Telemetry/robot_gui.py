@@ -163,7 +163,7 @@ class Form(QtGui.QWidget):
                      self.make_sender(create_p_command, 'P'))
         self.connect(self.dEdit, QtCore.SIGNAL("valueChanged(double)"),
                      self.make_sender(create_d_command, 'D'))
-        self.connect(self.dEdit, QtCore.SIGNAL("valueChanged(double)"),
+        self.connect(self.speedEdit, QtCore.SIGNAL("valueChanged(double)"),
                      self.make_sender(create_speed_command, 'Speed'))
 
         self.setLayout(mainLayout)
