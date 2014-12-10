@@ -84,9 +84,9 @@ int main(void)
 	MCUSR = 0;
 
 	SetSpeedAX(ID_BROADCAST, 1000);
-	SetTorqueAX(ID_BROADCAST, 700);
+	SetTorqueAX(ID_BROADCAST, 1000);
 
-	double speed = 1.5;
+	double speed = 2;
 
 	_delay_ms(3000);
 
