@@ -11,6 +11,7 @@ COMMANDS = {
     'SET_HEIGHT'  : b'\x06',
     'ROTATION'    : b'\x07',
     'PD_DATA'     : b'\x08',
+    'SET_SPEED'   : b'\x09',
 }
 
 def find_com_port():
@@ -60,6 +61,11 @@ def create_rotation_command(xrot, yrot):
     ret = COMMANDS['ROTATION']
     for x in [xrot, yrot]:
         ret += struct.pack('f', x)
+    return ret
+
+def create_speed_command(p):
+    ret = COMMANDS['SET_SPEED']
+    ret += struct.pack('f', p)
     return ret
 
 def print_raw(raw):

@@ -25,6 +25,7 @@ double turn_speed = 0;
 double height = 0;
 double xrot = 0;
 double yrot = 0;
+double speed = 1.7;
 
 Bus_data prepare_data() {
 	return data_to_send;
@@ -43,14 +44,16 @@ void interpret_data(Bus_data data){
 		if(side_speed > 1 || side_speed < -1) { side_speed = 0; }
 		if(turn_speed > 1 || turn_speed < -1) { turn_speed = 0; }
 	} else if (data_to_receive.id == SET_HEIGHT) {
-		height = ((Height_data) data_to_receive).height;
-
+		height = ((Constant_data) data_to_receive).constant;
 		if (height > 1 || height < -1) { height = 0; }
 	} else if (data_to_receive.id == ROTATION) {
 		xrot = ((Rotate_data) data_to_receive).xrot;
 		yrot = ((Rotate_data) data_to_receive).yrot;
 		if (yrot > 1 || yrot < -1) { yrot = 0; }
 		if (xrot > 1 || xrot < -1) { xrot = 0; }
+	} else if (data_to_receive) {
+		speed = ((Constant_data) data_to_receive).constant;
+		if (speed > 4 || speed < 0) { speed = 0.5; }
 	}
 }
 
@@ -63,6 +66,7 @@ int main(void)
 	volatile double height2 = 0;
 	volatile double xrot2 = 0;
 	volatile double yrot2 = 0;
+	volatile double speed2 = 1.7;
 	set_as_slave(F_CPU, prepare_data, interpret_data, CONTROL);
 	// Delay för att servona ska hinna starta, typ
 	_delay_ms(10);
@@ -86,8 +90,6 @@ int main(void)
 	SetSpeedAX(ID_BROADCAST, 1000);
 	SetTorqueAX(ID_BROADCAST, 1000);
 
-	double speed = 2;
-
 	_delay_ms(3000);
 
 	takeStep(speed, 0, 0, 0, 0, 0, 0);
@@ -100,7 +102,8 @@ int main(void)
 			height2 = height;
 			xrot2 = xrot;
 			yrot2 = yrot;
+			speed2 = speed;
 		}
-		takeStep(speed, forward_speed2, side_speed2, turn_speed2, height2, xrot2, yrot2);
+		takeStep(speed2, forward_speed2, side_speed2, turn_speed2, height2, xrot2, yrot2);
 	}
 }

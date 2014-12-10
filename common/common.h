@@ -28,8 +28,8 @@ typedef enum {
 	SENSOR_DATA,
 	SET_HEIGHT,
 	ROTATION,
-	PD_DATA
-	// o.s.v..
+	PD_DATA,
+	SET_SPEED
 } Data_id;
 
 // Hur mycket data ett paket har
@@ -44,7 +44,8 @@ static uint8_t command_lengths[] = {
 	[SENSOR_DATA] = 4*6+2, // 5 IR-sensorer, 1 gyro och 1 angular rate
 	[SET_HEIGHT]  = 4, // 1 double
 	[ROTATION]    = 4+4,
-	[PD_DATA]     = 4*4 // Error + P + D + Adjustment
+	[PD_DATA]     = 4*4, // Error + P + D + Adjustment
+	[SET_SPEED]   = 4    // 1 double
 };
 
 // [Kommando] | ska till | enhet
@@ -57,7 +58,8 @@ static Device_id which_device[] = {
 	[SET_D]            = DECISION,
 	[SET_HEIGHT]       = CONTROL,
 	[ROTATION]         = CONTROL,
-	[PD_DATA]          = COMMUNICATION
+	[PD_DATA]          = COMMUNICATION,
+	[SET_SPEED]        = CONTROL
 };
 
 typedef union {
@@ -70,15 +72,6 @@ typedef union {
 		double turn_speed;
 	};
 } Move_data;
-
-typedef union {
-	Bus_data bus_data;
-	struct {
-		uint8_t count;
-		data_id id;
-		double height;
-	};
-} Height_data;
 
 typedef union {
 	Bus_data bus_data;

@@ -88,6 +88,12 @@ class Form(QtGui.QWidget):
         self.dEdit.setDecimals(4)
         self.dEdit.setValue(0.007)
         self.dEdit.setSingleStep(0.0005)
+        self.speedEdit = QDoubleSpinBox()
+        self.speedEdit.setDecimals(2)
+        self.speedEdit.setValue(1.7)
+        self.speedEdit.setSingleStep(0.1)
+        self.speedEdit.setMinimum(0.1)
+        self.speedEdit.setMaximum(4.0)
         # Consolen
         self.console = QTextEdit()
         self.console.setReadOnly(True)
@@ -110,6 +116,7 @@ class Form(QtGui.QWidget):
         buttonsLayout.addWidget(self.goButton)
         buttonsLayout.addWidget(self.pEdit)
         buttonsLayout.addWidget(self.dEdit)
+        buttonsLayout.addWidget(self.speedEdit)
         buttonsLayout.addStretch(1)
 
         # Statistiklayouter
@@ -152,8 +159,12 @@ class Form(QtGui.QWidget):
 
         self.connect(self.clearButton, QtCore.SIGNAL("clicked()"), make_clear_plots(self.plot_arrays))
         self.connect(self.goButton, QtCore.SIGNAL("clicked()"), self.send_go_stop)
-        self.connect(self.pEdit, QtCore.SIGNAL("valueChanged(double)"), self.make_sender(create_p_command, 'P'))
-        self.connect(self.dEdit, QtCore.SIGNAL("valueChanged(double)"), self.make_sender(create_d_command, 'D'))
+        self.connect(self.pEdit, QtCore.SIGNAL("valueChanged(double)"),
+                     self.make_sender(create_p_command, 'P'))
+        self.connect(self.dEdit, QtCore.SIGNAL("valueChanged(double)"),
+                     self.make_sender(create_d_command, 'D'))
+        self.connect(self.dEdit, QtCore.SIGNAL("valueChanged(double)"),
+                     self.make_sender(create_speed_command, 'Speed'))
 
         self.setLayout(mainLayout)
         self.setWindowTitle("Robotdestroyer v1.23 beta [build.{}]".format(random.randint(10000, 99999)))
