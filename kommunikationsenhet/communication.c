@@ -19,7 +19,7 @@
 //Define properties for USART
 #define USART_BAUDRATE 115200
 #define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 16UL))) - 1)
-volatile uint8_t autoMode;
+volatile uint8_t autoMode = 0;
 volatile uint8_t waitForP;
 volatile uint8_t waitForD;
 volatile uint8_t poll;
@@ -141,6 +141,8 @@ int main(void) {
 	initTimer();
 
 	Bus_data data;
+
+	init_queue(&data_buffer);
 
 	sei();//Enable interrupts in status register
     while(1) {
