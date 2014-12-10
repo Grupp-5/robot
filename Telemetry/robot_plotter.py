@@ -11,7 +11,7 @@ import numpy as np
 def create_arrays():
     arys = {}
     ## En tom array för varje typ av data
-    for d in ['e','p','d', 'i', 'a', 'bl', 'fl' ,'f', 'fr', 'br', 'g', 'ar']:
+    for d in ['e','p','d', 'a', 'bl', 'fl' ,'f', 'fr', 'br', 'g', 'ar']:
         arys[d] = [None, np.array([]), np.array([])]
     return arys
 
@@ -25,20 +25,27 @@ def create_pd_plots(plots, win):
     win.nextRow()
     plots['d'][0] = create_plot(win, 'D', colspan=5)
     win.nextRow()
-    plots['i'][0] = create_plot(win, 'I', colspan=5)
-    win.nextRow()
     plots['a'][0] = create_plot(win, 'Adjustment', colspan=5)
     win.nextRow()
 
 def create_sensor_plots(plots, win):
     plots['fl'][0] = create_plot(win, 'FL')
     plots['f' ][0] = create_plot(win, 'F' )
+    plots['f'][0].setYRange(0, 400)
     plots['fr'][0] = create_plot(win, 'FR')
     win.nextRow()
     plots['bl'][0] = create_plot(win, 'BL')
     win.nextColumn()
     plots['br'][0] = create_plot(win, 'BR')
     win.nextRow()
+
+    last = 'br'
+    for x in ['fl', 'fr', 'f', 'bl', 'br']:
+        plots[x][0].setYRange(0, 200)
+        #plots[x][0].setXRange(0, 100)
+        plots[x][0].setXLink(plots[last][0])
+        last = x
+
 
 def create_gyro_plots(plots, win):
     plots['g' ][0] = create_plot(win, 'Gyro', colspan=4)
@@ -58,6 +65,11 @@ def plot_update(plots):
     count = 0
     for k, v in plots.iteritems():
         v[0].plot(v[2], v[1], clear=True, pen=(count, len(plots)))
+        try:
+            last_x_val = v[2][-1]
+        except IndexError:
+            last_x_val = 100
+        #v[0].setXRange(last_x_val - 100, last_x_val)
         count += 1
 
 def make_updater(plots):
@@ -82,16 +94,16 @@ def reader(ALL_PLOTS, con, extra_fun=None):
         raw = con.read(size=1)
         print_raw(raw)
         if raw == COMMANDS['PD_DATA']:
-            raw = con.read(size=4*5)
-            error, p, d, i, adj = struct.unpack('fffff', raw)
+            raw = con.read(size=4*4)
+            error, p, d, adj = struct.unpack('ffff', raw)
             pd_counter += 1
-            for plt, val in zip(['e',  'p', 'd',  'i', 'a'],
-                                [error, p ,  d ,   i, adj]):
+            for plt, val in zip(['e',  'p', 'd', 'a'],
+                                [error, p ,  d , adj]):
                 ALL_PLOTS[plt][1] = np.append(ALL_PLOTS[plt][1], val)
                 if extra_fun:
                     extra_fun(plt, str(int(val)))
 
-            for x in ['e', 'p', 'i', 'd', 'a']:
+            for x in ['e', 'p', 'd', 'a']:
                 ALL_PLOTS[x][2] = np.append(ALL_PLOTS[x][2], pd_counter)
 
             print error, p, d
