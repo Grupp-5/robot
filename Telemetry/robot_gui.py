@@ -77,7 +77,6 @@ class Form(QtGui.QWidget):
 
         #self.switch1 = QCheckBox("hej")
         # Knappar
-        self.forwardButton = QPushButton(u"&Framåt")
         self.clearButton = QPushButton(u"&Rensa")
         self.goButton = QPushButton(u"&Go")
 
@@ -119,10 +118,11 @@ class Form(QtGui.QWidget):
         for k, v in self.labels.iteritems():
             boxLayoutLeft1.addWidget(v[0])
             boxLayoutLeft2.addWidget(v[1])
+        boxLayoutLeft1.addStretch(1)
+        boxLayoutLeft2.addStretch(1)
+
 
         #boxLayoutLeft1.addWidget(self.switch1)
-        boxLayoutMid = QVBoxLayout()
-        boxLayoutMid.addWidget(self.forwardButton)
         boxLayoutRight = QVBoxLayout()
         boxLayoutRight.addWidget(self.console)
 
@@ -133,7 +133,6 @@ class Form(QtGui.QWidget):
         statsLayout = QGridLayout(stats_tab)
         statsLayout.addLayout(boxLayoutLeft1, 0, 0)
         statsLayout.addLayout(boxLayoutLeft2, 0, 1)
-        statsLayout.addLayout(boxLayoutMid, 0, 2)
         statsLayout.addLayout(boxLayoutRight, 0, 3, 2, 1)
         # IR layout
         irLayout = QGridLayout(ir_tab)
