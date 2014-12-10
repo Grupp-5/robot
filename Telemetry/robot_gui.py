@@ -86,7 +86,7 @@ class Form(QtGui.QWidget):
         self.pEdit.setSingleStep(0.0005)
         self.dEdit = QDoubleSpinBox()
         self.dEdit.setDecimals(4)
-        self.dEdit.setValue(0.007)
+        self.dEdit.setValue(0.02)
         self.dEdit.setSingleStep(0.0005)
         self.speedEdit = QDoubleSpinBox()
         self.speedEdit.setDecimals(2)
