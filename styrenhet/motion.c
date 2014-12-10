@@ -17,6 +17,12 @@ uint8_t LEGS[6][3] = LEGS_ARRAY;
 // Konverterar radianer till grader som AX12 förstår
 #define RAD_TO_AX_DEG 195.569594071321 // = ((1024/300)*360)/(pi*2)
 
+#define TIBIA_MIN_LIMIT 0x0A4
+#define FEMUR_MAX_LIMIT 0x351
+
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+
 /**
  * Räknar ut vilka vinklar servona ska ha för att komma till
  * positionen (x, y, z) cm och flyttar dem dit.
@@ -33,6 +39,9 @@ void moveLegTo(uint8_t legid, double x, double y, double z)
 	uint16_t femur_alpha = RAD_TO_AX_DEG*rot.alpha + 553;
 	uint16_t tibia_beta = 624 - RAD_TO_AX_DEG*rot.beta;
 	
+	femur_alpha = MIN(femur_alpha, FEMUR_MAX_LIMIT);
+	tibia_beta = MAX(tibia_beta, TIBIA_MIN_LIMIT);
+
 	SetPositionAX(LEGS[legid-1][COXA],  coxa_gamma );
 	SetPositionAX(LEGS[legid-1][FEMUR], femur_alpha);
 	SetPositionAX(LEGS[legid-1][TIBIA], tibia_beta );
