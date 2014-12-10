@@ -78,6 +78,8 @@ class Form(QtGui.QWidget):
         #self.switch1 = QCheckBox("hej")
         # Knappar
         self.forwardButton = QPushButton(u"&Framåt")
+        self.clearButton = QPushButton(u"&Rensa")
+        self.goButton = QPushButton(u"&Go")
         # Consolen
         self.console = QTextEdit()
         self.console.setReadOnly(True)
@@ -90,7 +92,16 @@ class Form(QtGui.QWidget):
 
         # Tabblayouten
         boxLayoutTop = QHBoxLayout()
+        buttonsLayout = QVBoxLayout()
+
         boxLayoutTop.addWidget(self.tab_widget)
+        boxLayoutTop.addLayout(buttonsLayout)
+
+        buttonsLayout.addStretch(1)
+        buttonsLayout.addWidget(self.clearButton)
+        buttonsLayout.addWidget(self.goButton)
+        buttonsLayout.addStretch(1)
+
         # Statistiklayouter
         boxLayoutLeft1 = QVBoxLayout()
         boxLayoutLeft2 = QVBoxLayout()
@@ -129,6 +140,9 @@ class Form(QtGui.QWidget):
         create_pd_plots(self.plot_arrays, self.pdplot)
         add_plot_grids(self.plot_arrays)
 
+        self.connect(self.clearButton, QtCore.SIGNAL("clicked()"), make_clear_plots(self.plot_arrays))
+        self.connect(self.goButton, QtCore.SIGNAL("clicked()"), self.send_go_stop)
+
         self.setLayout(mainLayout)
         self.setWindowTitle("Robotdestroyer v1.23 beta [build.{}]".format(random.randint(10000, 99999)))
 
@@ -156,6 +170,24 @@ class Form(QtGui.QWidget):
 
     def update_stats(self, label, value):
         self.labels[label][1].setText(value)
+
+    auto_started = False
+    def send_go_stop(self):
+        if not self.auto_started:
+            self.con.write(create_changemode_command(1))
+            print "Sent changemode {}.".format(1)
+            self.auto_started = True
+        else:
+            self.con.write(create_changemode_command(0))
+            print "Sent changemode {}.".format(0)
+            self.auto_started = False
+
+
+def make_clear_plots(plots):
+    def _clearer():
+        clear_plots(plots)
+    return _clearer
+
 
 def main():
     app = QtGui.QApplication(sys.argv)
