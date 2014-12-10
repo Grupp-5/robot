@@ -56,7 +56,7 @@ void waitForCorrectValues()
 		sensor_data = getSensorData();
 		_delay_ms(20);
 		
-	} while (sensor_data.bl + sensor_data.br > 75);
+	} while (sensor_data.bl + sensor_data.br > 75 && !send_stop);
 }
 
 double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
@@ -125,7 +125,7 @@ void turnTo(double deg, double forward_speed) {
 	double error = recordedDeg - goalDeg;
 	double adjustment;
 
-	while (fabs(error) > deg_margin)
+	while (fabs(error) > deg_margin && !send_stop)
 	{
 		adjustment = turn_p*error;
 		adjustment = fmax(fmin(adjustment, MAX_ADJUSTMENT), - MAX_ADJUSTMENT);
