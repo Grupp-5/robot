@@ -51,7 +51,7 @@ void interpret_data(Bus_data data){
 		yrot = ((Rotate_data) data_to_receive).yrot;
 		if (yrot > 1 || yrot < -1) { yrot = 0; }
 		if (xrot > 1 || xrot < -1) { xrot = 0; }
-	} else if (data_to_receive) {
+	} else if (data_to_receive.id == SET_SPEED) {
 		speed = ((Constant_data) data_to_receive).constant;
 		if (speed > 4 || speed < 0) { speed = 0.5; }
 	}
