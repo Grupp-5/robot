@@ -106,7 +106,7 @@ def reader(ALL_PLOTS, con, extra_fun=None):
             for x in ['e', 'p', 'd', 'a']:
                 ALL_PLOTS[x][2] = np.append(ALL_PLOTS[x][2], pd_counter)
 
-            print error, p, d
+            print error, p, d, adj
             # print_raw(raw)
         if raw == COMMANDS['SENSOR_DATA']:
             raw = con.read(size=4*6+2)
