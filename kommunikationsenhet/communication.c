@@ -55,7 +55,8 @@ ISR(PCINT0_vect) {
 	}
 }
 
-queue data_buffer;
+queue from_bt_buf;
+queue to_bt_buf;
 
 //Data received interrupt
 ISR(USART1_RX_vect) {
@@ -70,7 +71,7 @@ ISR(USART1_RX_vect) {
 		data[c] = UDR1;
 	}
 	// Lägg till i kö som avverkas i main-loop
-	enqueue(&data_buffer, *(Bus_data*) &data);
+	enqueue(&from_bt_buf, *(Bus_data*) &data);
 }
 
 //Initialize the USART
@@ -103,10 +104,7 @@ void interpret_data(Bus_data data){
 	if(data_to_receive.id == STOP_TIMER) {
 		autoMode = 0;
 	}
-	USART_Send_Byte(data_to_receive.id);
-	for (uint8_t c = 0; c < data_to_receive.count; c++) {
-		USART_Send_Byte(data_to_receive.data[c]);
-	}
+	enqueue(&to_bt_buf, data_to_receive);
 }
 
 //Poll for data
@@ -142,26 +140,31 @@ int main(void) {
 
 	Bus_data data;
 
-	init_queue(&data_buffer);
+	init_queue(&to_bt_buf);
+	init_queue(&from_bt_buf);
 
 	sei();//Enable interrupts in status register
     while(1) {
 		if (poll == 1) {
 			data_to_receive.count = command_lengths[SENSOR_DATA] + 2;
 			fetch_data(SENSOR, &data_to_receive);
-
-			USART_Send_Byte(data_to_receive.id);
-
-			for (uint8_t c = 0; c < data_to_receive.count - 2; c++) {
-				USART_Send_Byte(data_to_receive.data[c]);
-			}
+			enqueue(&to_bt_buf, data_to_receive);
 			poll = 0;
 		}
 
 		// TODO: Inte säker på om det är vettigt med en loop här.
-		while (!empty(&data_buffer))
+		while (!empty(&to_bt_buf)) {
+			data = dequeue(&to_bt_buf);
+			USART_Send_Byte(data.id);
+			// Skicka resten av data, exklusive count och id
+			for (uint8_t c = 0; c < data.count - 2; c++) {
+				USART_Send_Byte(data.data[c]);
+			}
+		}
+
+		while (!empty(&from_bt_buf))
 		{
-			data = dequeue(&data_buffer);
+			data = dequeue(&from_bt_buf);
 			// Skicka vidare kommandot om det inte var avsett för komm-enheten
 			if (which_device[data.id] != COMMUNICATION) {
 				send_data(which_device[data.id], data);
