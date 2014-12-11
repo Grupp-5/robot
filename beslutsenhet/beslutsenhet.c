@@ -63,7 +63,7 @@ double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like craz
 double P = 0.005; // Constant for the proportional part
 double D = 0.02;  // Constant for the derivative part
 
-#define ERROR_COUNT 10
+#define ERROR_COUNT 16
 
 double delta_t = 0.05;
 
@@ -143,13 +143,13 @@ void turnTo(double deg, double forward_speed) {
 
 void enableTimers()
 {
-	TIMSK1 |= (1<<TOIE1);  // Enable timer overflow interrupt for Timer1
 	TIMSK3 |= (1<<OCIE3A); // Enable interrupts on CTC mode
+	TIMSK1 |= (1<<OCIE1A); // Enable interrupts on CTC mode
 }
 
 void disableTimers()
 {
-	TIMSK1 &= ~(1<<TOIE1);  // Disable timer overflow interrupt for Timer1
+	TIMSK1 &= ~(1<<OCIE1A); // Disable timer compare interrupt for Timer3
 	TIMSK3 &= ~(1<<OCIE3A); // Disable timer compare interrupt for Timer3
 }
 
@@ -205,10 +205,8 @@ void makeDecision(void) {
 	}
 }
 
-ISR(TIMER1_OVF_vect) {
-	makeDecisionFlag = 1;
-	TCNT1H = 0xB0; //Reset Timer1 high register
-	TCNT1L = 0x00; //Reset Timer1 low register
+ISR(TIMER1_COMPA_vect) {
+	makeDecisionFlag = true;
 }
 
 ISR(TIMER3_COMPA_vect) {
@@ -216,13 +214,17 @@ ISR(TIMER3_COMPA_vect) {
 }
 
 #define PD_PRESCALE 64
+#define DEC_PRESCALE 64
+double dec_delta_t = 0.1;
 // Initialize one timer interrupt to happen approximately once per
 // second and one every delta_t
 void initTimer(void) {
-	//TIMSK1 = (1<<TOIE1);//Enable timer overflow interrupt for Timer1
-	TCNT1H = 0x80; //Initialize Timer1 high register
-	TCNT1L = 0x00; //Initialize Timer1 low register
-	TCCR1B = (1<<CS11)|(1<<CS10);//Use clock/64 prescaler
+
+	// Use clock/64 prescaler and immediate compare mode
+	TCCR1B = (1<<CS11) | (1<<CS10) | (1<<WGM12);
+	// Compare match every dec_delta_t seconds
+	// OCRn = (clock_speed / Prescaler_value) * Desired_time_in_Seconds - 1
+	OCR1A = (F_CPU/DEC_PRESCALE) * dec_delta_t - 1;
 
 	// Use clock/64 prescaler and immediate compare mode
 	TCCR3B = (1<<CS31) | (1<<CS30) | (1<<WGM32);
@@ -256,6 +258,7 @@ void interpret_data(Bus_data data){
 			cleanOldErrors();
 
 		}else {
+			reset_far();
 			disableTimers();
 			send_stop = true;
 			pdFlag = false;
