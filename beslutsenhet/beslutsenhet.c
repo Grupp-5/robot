@@ -22,7 +22,6 @@
 volatile uint8_t autoMode;
 volatile uint8_t makeDecisionFlag;
 volatile uint8_t pdFlag;
-volatile uint8_t turn;
 volatile uint8_t send_stop = false;
 
 Bus_data data_to_send = {0};
@@ -307,7 +306,6 @@ int main(void) {
 	makeDecisionFlag = 0;
 	pdFlag = false;
 	autoMode = 0;
-	turn = 1;
 
 	initTimer();
 	sei();
