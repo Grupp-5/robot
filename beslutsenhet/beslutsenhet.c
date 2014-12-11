@@ -155,7 +155,7 @@ void disableTimers()
 
 #define WIDTH_MARGIN 70.0
 #define SIDE_MARGIN 80.0 + WIDTH_MARGIN // Höftat
-#define STABLE_COUNT 10
+#define STABLE_COUNT 6
 typedef enum {
 	FAR_LEFT,
 	FAR_RIGHT,
@@ -180,7 +180,7 @@ void celebrate() {
 	disableTimers();
 }
 
-double TURN_FORWARD_SPEED = 0.0; // 0.3;
+double TURN_FORWARD_SPEED = 0.3;
 
 void makeDecision(void) {
 	volatile Sensor_data sensor_data = getSensorData();
@@ -323,10 +323,10 @@ int main(void) {
 		if(pdFlag) {
 			volatile Sensor_data sensor_data = getSensorData();
 
-			if (sides[BIT_LEFT] > STABLE_COUNT) {
-				pdAlgoritm(sensor_data.br, sensor_data.fr);
-			} else if (sides[BIT_RIGHT] > STABLE_COUNT) {
-				pdAlgoritm(sensor_data.bl, sensor_data.fl);
+			if (sides[BIT_LEFT] > STABLE_COUNT || sides[BIT_RIGHT] > STABLE_COUNT) {
+				/*pdAlgoritm(sensor_data.br, sensor_data.fr);
+			} else if () {
+				pdAlgoritm(sensor_data.bl, sensor_data.fl);*/
 			} else {
 				pdAlgoritm(sensor_data.br, sensor_data.bl);
 			}
