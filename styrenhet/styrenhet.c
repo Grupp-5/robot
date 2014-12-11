@@ -25,7 +25,7 @@ double turn_speed = 0;
 double height = 0;
 double xrot = 0;
 double yrot = 0;
-double speed = 1.7;
+double speed = 1.5;
 
 Bus_data prepare_data() {
 	return data_to_send;
@@ -66,7 +66,7 @@ int main(void)
 	volatile double height2 = 0;
 	volatile double xrot2 = 0;
 	volatile double yrot2 = 0;
-	volatile double speed2 = 1.7;
+	volatile double speed2 = 1.5;
 	set_as_slave(F_CPU, prepare_data, interpret_data, CONTROL);
 	// Delay för att servona ska hinna starta, typ
 	_delay_ms(10);

@@ -153,17 +153,24 @@ void disableTimers()
 	TIMSK3 &= ~(1<<OCIE3A); // Disable timer compare interrupt for Timer3
 }
 
-#define SIDE_MARGIN 80.0 + 70.0 // Höftat
-#define STABLE_COUNT 4
+#define WIDTH_MARGIN 70.0
+#define SIDE_MARGIN 80.0 + WIDTH_MARGIN // Höftat
+#define STABLE_COUNT 10
 typedef enum {
-	LEFT,
-	RIGHT
+	FAR_LEFT,
+	FAR_RIGHT,
+	BIT_LEFT,
+	BIT_RIGHT,
+	SHORT_FORWARD
 } Side;
-uint8_t far[2] = {0};
+uint8_t sides[5] = {0};
 
 void reset_far() {
-	far[LEFT] = 0;
-	far[RIGHT] = 0;
+	sides[FAR_LEFT] = 0;
+	sides[FAR_RIGHT] = 0;
+	sides[BIT_LEFT] = 0;
+	sides[BIT_RIGHT] = 0;
+	sides[SHORT_FORWARD] = 0;
 }
 
 void celebrate() {
@@ -173,36 +180,62 @@ void celebrate() {
 	disableTimers();
 }
 
+double TURN_FORWARD_SPEED = 0.0; // 0.3;
+
 void makeDecision(void) {
 	volatile Sensor_data sensor_data = getSensorData();
 
-	if (sensor_data.fl > SIDE_MARGIN) far[LEFT]++;
-	else far[LEFT] = 0;
+	if(sensor_data.f < 30) sides[SHORT_FORWARD]++;
+	else sides[SHORT_FORWARD] = 0;
 
-	if (sensor_data.fr > SIDE_MARGIN) far[RIGHT]++;
-	else far[RIGHT] = 0;
+	if (sensor_data.fl > SIDE_MARGIN) sides[FAR_LEFT]++;
+	else sides[FAR_LEFT] = 0;
 
-	if (far[LEFT] > STABLE_COUNT/2.0 && far[RIGHT] > STABLE_COUNT/2.0) {
+	if (sensor_data.fr > SIDE_MARGIN) sides[FAR_RIGHT]++;
+	else sides[FAR_RIGHT] = 0;
+
+	if (sensor_data.fr > WIDTH_MARGIN && sensor_data.fr < SIDE_MARGIN) sides[BIT_RIGHT]++;
+	else sides[BIT_RIGHT] = 0;
+
+	if (sensor_data.fl > WIDTH_MARGIN && sensor_data.fl < SIDE_MARGIN) sides[BIT_LEFT]++;
+	else sides[BIT_LEFT] = 0;
+
+	if (sides[FAR_LEFT] > STABLE_COUNT/2.0 && sides[FAR_RIGHT] > STABLE_COUNT/2.0) {
 		celebrate();
 		reset_far();
 		return;
 	}
 
-	if (far[LEFT] > STABLE_COUNT) {
-		turnTo(-90.0, 0.6);
+	if (sides[BIT_LEFT] > STABLE_COUNT || sides[BIT_RIGHT] > STABLE_COUNT) {
+		cleanOldErrors();
+	}
+
+	if (sides[FAR_LEFT] > STABLE_COUNT) {
+		turnTo(-90.0, TURN_FORWARD_SPEED);
 		reset_far();
 		send_move_data(0.6, 0, 0);
 		waitForCorrectValues();
 		cleanOldErrors();
 	}
 
-	if (far[RIGHT] > STABLE_COUNT) {
-		turnTo(90.0, 0.6);
+	if (sides[FAR_RIGHT] > STABLE_COUNT) {
+		turnTo(90.0, TURN_FORWARD_SPEED);
 		reset_far();
 		send_move_data(0.6, 0, 0);
 		waitForCorrectValues();
 		cleanOldErrors();
 	}
+
+	/*
+	// För att gå fram och tillbaka i en korridor
+	if (sides[SHORT_FORWARD] > STABLE_COUNT)
+	{
+		turnTo(175.0, 0.0);
+		reset_far();
+		cleanOldErrors();
+	}
+	*/
+
 }
 
 ISR(TIMER1_COMPA_vect) {
@@ -289,7 +322,15 @@ int main(void) {
 
 		if(pdFlag) {
 			volatile Sensor_data sensor_data = getSensorData();
-			pdAlgoritm(sensor_data.br, sensor_data.bl);
+
+			if (sides[BIT_LEFT] > STABLE_COUNT) {
+				pdAlgoritm(sensor_data.br, sensor_data.fr);
+			} else if (sides[BIT_RIGHT] > STABLE_COUNT) {
+				pdAlgoritm(sensor_data.bl, sensor_data.fl);
+			} else {
+				pdAlgoritm(sensor_data.br, sensor_data.bl);
+			}
+
 			pdFlag = false;
 		}
 
