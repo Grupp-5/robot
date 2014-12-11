@@ -17,8 +17,8 @@
 #include <util/delay.h>
 
 uint16_t deltaT = 0x6FFF;//Change this to change time between PD-adjustments
-double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
-double TURN_MAX_ADJUSTMENT = 0.3; //Constant to stop the robot from turning like crazy
+double MAX_ADJUSTMENT = 0.3; //Constant to stop the robot from turning like crazy
+double TURN_MAX_ADJUSTMENT = 0.2; //Constant to stop the robot from turning like crazy
 double P; //Constant for the proportional part
 double D; //Constant for the derivative part
 double prevError = 0; //The previous error
@@ -131,6 +131,8 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 		prevError = (error+prevError)/2;//Removes some of the peaks in the derivative
 	
 		send_move_data(0.5, side_adjustment, turn_adjustment);
+	}else {
+		send_move_data(0.5, 0, 0);//Go Forward
 	}
 }
 
