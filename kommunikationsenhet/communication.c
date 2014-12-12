@@ -29,10 +29,10 @@ Bus_data data_to_receive = {0};
 Bus_data master_data_to_send = {0};
 volatile Bus_data master_data_to_receive = {0};
 	
-void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t arg_count, uint8_t data_array[]) {
+void send_to_bus(Device_id dev_id, Data_id data_id, uint8_t data_array[]) {
 	master_data_to_send.id = data_id;
-	master_data_to_send.count = arg_count+2;
-	for(int i = 0; i<arg_count; i++) {
+	master_data_to_send.count = command_lengths[data_id]+2;
+	for(int i = 0; i < command_lengths[data_id]; i++) {
 		master_data_to_send.data[i] = data_array[i];
 	}
 	send_data(dev_id, master_data_to_send);
@@ -51,7 +51,7 @@ ISR(PCINT0_vect) {
 		}
 		uint8_t data[1] = {autoMode};
 		sei(); // TODO: Flytta ut till main-loop
-		send_to_bus(which_device[CHANGEMODE], CHANGEMODE, command_lengths[CHANGEMODE], data);//Tell beslutsenhet to change mode
+		send_to_bus(which_device[CHANGEMODE], CHANGEMODE, data);//Tell beslutsenhet to change mode
 	}
 }
 
