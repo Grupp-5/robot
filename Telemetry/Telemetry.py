@@ -157,9 +157,14 @@ t = thread.start_new_thread(command_sender, ())
 reader_t = thread.start_new_thread(create_reader(ALL_PLOTS, con), ())
 
 ## TODO: Ifsatser beroende på om man har en joystick eller inte inkopplad
-#print j.get_numaxes()
-#j = pygame.joystick.Joystick(0)
-#j.init()
+pygame.joystick.init()
+j = None
+try:
+    j = pygame.joystick.Joystick(0)
+    j.init()
+    print j.get_numaxes()
+except:
+    print "No joystick!!"
 
 
 MAX_MARGIN = 0.05
@@ -173,30 +178,28 @@ while 1:
     delta_t = clock.tick(FRAMES_PER_SECOND)
     screen.fill(black)
 
-    # for i in range(6):
-    #     print i, j.get_axis(i)
-
-
-    #_vars['f_speed'] = -j.get_axis(1)
-    #_vars['s_speed'] = j.get_axis(0)
-    #_vars['yrot'] = -j.get_axis(2)
-    #_vars['xrot'] = -j.get_axis(3)
-
-    #_vars['r_speed'] = (j.get_axis(4)+1)/2 -(j.get_axis(5)+1)/2
-
     for v in ['f_speed', 's_speed', 'r_speed', 'xrot', 'yrot']:
         if abs(_vars[v]) < MAX_MARGIN:
             _vars[v] = 0
 
     keys = pygame.key.get_pressed()
 
-    for key, _actions in actions:
-        if not keys[key[0]] and not keys[key[1]]:
-            _actions['neither'](_actions['var'], _actions['step_size'])
-        if keys[key[0]]:
-            _actions['action_p'](_actions['var'], _actions['step_size'])
-        if keys[key[1]]:
-            _actions['action_n'](_actions['var'], _actions['step_size'])
+    if j:
+        _vars['f_speed'] = -j.get_axis(1)
+        _vars['s_speed'] = j.get_axis(0)
+        _vars['yrot'] = -j.get_axis(2)
+        _vars['xrot'] = -j.get_axis(3)
+
+        _vars['r_speed'] = (j.get_axis(4)+1)/2 -(j.get_axis(5)+1)/2
+    else:
+        for key, _actions in actions:
+            if not keys[key[0]] and not keys[key[1]]:
+                _actions['neither'](_actions['var'], _actions['step_size'])
+            if keys[key[0]]:
+                _actions['action_p'](_actions['var'], _actions['step_size'])
+            if keys[key[1]]:
+                _actions['action_n'](_actions['var'], _actions['step_size'])
+
 
     for key, _action in single_actions:
         if not IS_PRESSED[key] and keys[key]:
