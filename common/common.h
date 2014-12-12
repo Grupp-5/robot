@@ -42,7 +42,7 @@ typedef union {
 	Bus_data bus_data;
 	struct {
 		uint8_t count;
-		data_id id;
+		Data_id id;
 		double forward_speed;
 		double side_speed;
 		double turn_speed;
@@ -53,7 +53,7 @@ typedef union {
 	Bus_data bus_data;
 	struct {
 		uint8_t count;
-		data_id id;
+		Data_id id;
 		double xrot;
 		double yrot;
 	};
@@ -63,7 +63,7 @@ typedef union {
 	Bus_data bus_data;
 	struct {
 		uint8_t count;
-		data_id id;
+		Data_id id;
 		double fr;
 		double br;
 		double fl;
@@ -78,7 +78,7 @@ typedef union {
 	Bus_data bus_data;
 	struct {
 		uint8_t count;
-		data_id id;
+		Data_id id;
 		double constant;
 	};
 } Constant_data;
@@ -86,7 +86,7 @@ typedef union {
 typedef union {
 	struct {
 		uint8_t count;
-		data_id id;
+		Data_id id;
 		double error;
 		double p;
 		double d;

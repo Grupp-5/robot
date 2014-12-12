@@ -12,12 +12,12 @@
 #define MAX_DATA 30 // maximalt antal data-bytes
 #define SCL_CLOCK  100000L // "bitrate"
 
-typedef uint8_t data_id ;
+typedef uint8_t _data_id ;
 typedef uint8_t device_id;
 
 typedef	struct {	// Data som ska skickas på bussen
 	uint8_t count;
-	data_id id;
+	_data_id id;
 	uint8_t data[MAX_DATA - 1];
 } Bus_data;
 
