@@ -75,12 +75,14 @@ int main(void)
 
 	sei();
 	
+	/*
 	// För att manuellt avläsa data för debugging
 	volatile ResponsePacket servo_infos[18];
 	
 	for (byte id = 1; id <= 18; id++) {
 		servo_infos[id-1] = ReadAllAX(id);
 	}
+	*/
 
 	//setLayPosition();
 	setStartPosition();
