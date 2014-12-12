@@ -128,7 +128,6 @@
           <ListValues>
             <Value>../../common</Value>
             <Value>../../modulkommunikation</Value>
-            <Value>../../i2c</Value>
           </ListValues>
         </avrgcc.compiler.directories.IncludePaths>
         <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
@@ -142,12 +141,14 @@
             <Value>libm</Value>
             <Value>modulkommunikation</Value>
             <Value>twi</Value>
+            <Value>common</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
         <avrgcc.linker.libraries.LibrarySearchPaths>
           <ListValues>
             <Value>../../modulkommunikation/Debug</Value>
             <Value>../../twi/Debug</Value>
+            <Value>../../common/Debug</Value>
           </ListValues>
         </avrgcc.linker.libraries.LibrarySearchPaths>
         <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>

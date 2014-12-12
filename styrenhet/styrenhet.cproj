@@ -101,12 +101,14 @@
           <ListValues>
             <Value>modulkommunikation</Value>
             <Value>twi</Value>
+            <Value>common</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
         <avrgcc.linker.libraries.LibrarySearchPaths>
           <ListValues>
             <Value>../../modulkommunikation/Debug</Value>
             <Value>../../twi/Debug</Value>
+            <Value>../../common/Debug</Value>
           </ListValues>
         </avrgcc.linker.libraries.LibrarySearchPaths>
       </AvrGcc>
