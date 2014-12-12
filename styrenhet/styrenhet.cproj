@@ -97,6 +97,7 @@
         <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
         <avrgcc.compiler.warnings.ExtraWarnings>True</avrgcc.compiler.warnings.ExtraWarnings>
         <avrgcc.compiler.warnings.Undefined>True</avrgcc.compiler.warnings.Undefined>
+        <avrgcc.compiler.miscellaneous.OtherFlags>-std=gnu99 -Wshadow -Wunsafe-loop-optimizations -Wlogical-op -Wvla -Wdisabled-optimization</avrgcc.compiler.miscellaneous.OtherFlags>
         <avrgcc.linker.libraries.Libraries>
           <ListValues>
             <Value>modulkommunikation</Value>
