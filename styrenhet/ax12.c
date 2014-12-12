@@ -31,13 +31,13 @@ void uart_init() {
 }
 
 
-void uart_putchar(char c) {
+void uart_putchar(byte c) {
 	loop_until_bit_is_set(UCSR0A, UDRE0); //Vänta tills dataregistret är tomt.
 	UDR0 = c;
 	checksum += c;
 }
 
-char uart_getchar() {
+byte uart_getchar() {
 	
 	PORTD &= ~(1<<PORTD3);
 	
