@@ -50,19 +50,26 @@ Sensor_data getSensorData() {
 void waitForCorrectValues()
 {
 	volatile Sensor_data sensor_data;
+	uint8_t correct_values = 0;
 	do
 	{
 		sensor_data = getSensorData();
 		_delay_ms(20);
-		
-	} while (sensor_data.bl + sensor_data.br > 75 && !send_stop);
+		if (sensor_data.bl + sensor_data.br < 75)
+		{
+			correct_values++;
+		}
+	} while (sensor_data.bl + sensor_data.br > 75 && correct_values < 10 && !send_stop);
 }
+
+double TURN_FORWARD_SPEED = 0.3;
+double NORMAL_SPEED = 0.6;
 
 double MAX_ADJUSTMENT = 0.5; //Constant to stop the robot from turning like crazy
 double P = 0.005; // Constant for the proportional part
 double D = 0.02;  // Constant for the derivative part
 
-#define ERROR_COUNT 16
+#define ERROR_COUNT 6
 
 double delta_t = 0.05;
 
@@ -115,7 +122,35 @@ void pdAlgoritm(double distanceRight, double distanceLeft) {
 
 	send_data(COMMUNICATION, pd_data.bus_data);
 
-	send_move_data(0.6, adjustment*1.2, adjustment);
+	send_move_data(NORMAL_SPEED, adjustment*1.2, adjustment);
+}
+
+typedef enum {
+	LEFT, RIGHT
+} Direction;
+
+void side_pd(double backSensor, Direction dir) {
+	double error = 27 - backSensor;
+	double p_adjustment, adjustment = 0;
+	p_adjustment = 10*P*error;
+
+	if (dir == RIGHT) p_adjustment = -p_adjustment;
+
+	adjustment = p_adjustment;
+	adjustment = fmax(fmin(adjustment, MAX_ADJUSTMENT), -MAX_ADJUSTMENT);
+
+	PD_Data pd_data = {
+		.id = PD_DATA,
+		.count = command_lengths[PD_DATA] + 2,
+		.error = error,
+		.p = p_adjustment,
+		.d = dir == RIGHT ? -1 : 1,
+		.adjustment = adjustment
+	};
+
+	send_data(COMMUNICATION, pd_data.bus_data);
+
+	send_move_data(NORMAL_SPEED, adjustment, 0.0);
 }
 
 // Blockerar main och snurrar DEG grader samtidigt som den går framåt
@@ -154,7 +189,7 @@ void disableTimers()
 
 #define WIDTH_MARGIN 70.0
 #define SIDE_MARGIN 80.0 + WIDTH_MARGIN // Höftat
-#define STABLE_COUNT 6
+#define STABLE_COUNT 4
 typedef enum {
 	FAR_LEFT,
 	FAR_RIGHT,
@@ -162,7 +197,7 @@ typedef enum {
 	BIT_RIGHT,
 	SHORT_FORWARD
 } Side;
-uint8_t sides[5] = {0};
+int8_t sides[5] = {0};
 
 void reset_far() {
 	sides[FAR_LEFT] = 0;
@@ -179,8 +214,6 @@ void celebrate() {
 	disableTimers();
 }
 
-double TURN_FORWARD_SPEED = 0.3;
-
 void makeDecision(void) {
 	volatile Sensor_data sensor_data = getSensorData();
 
@@ -193,11 +226,21 @@ void makeDecision(void) {
 	if (sensor_data.fr > SIDE_MARGIN) sides[FAR_RIGHT]++;
 	else sides[FAR_RIGHT] = 0;
 
-	if (sensor_data.fr > WIDTH_MARGIN && sensor_data.fr < SIDE_MARGIN) sides[BIT_RIGHT]++;
-	else sides[BIT_RIGHT] = 0;
+	if (sensor_data.fr > WIDTH_MARGIN && sensor_data.fr < SIDE_MARGIN) {
+		sides[BIT_RIGHT]++;
+		sides[BIT_RIGHT] = fmin(sides[BIT_RIGHT], STABLE_COUNT*2);
+	} else {
+		sides[BIT_RIGHT]--;
+		sides[BIT_RIGHT] = fmax(sides[BIT_RIGHT], 0);
+	}
 
-	if (sensor_data.fl > WIDTH_MARGIN && sensor_data.fl < SIDE_MARGIN) sides[BIT_LEFT]++;
-	else sides[BIT_LEFT] = 0;
+	if (sensor_data.fl > WIDTH_MARGIN && sensor_data.fl < SIDE_MARGIN) {
+		sides[BIT_LEFT]++;
+		sides[BIT_LEFT] = fmin(sides[BIT_LEFT], STABLE_COUNT*2);
+	} else {
+		sides[BIT_LEFT]--;
+		sides[BIT_LEFT] = fmax(sides[BIT_LEFT], 0);
+	}
 
 	if (sides[FAR_LEFT] > STABLE_COUNT/2.0 && sides[FAR_RIGHT] > STABLE_COUNT/2.0) {
 		celebrate();
@@ -212,7 +255,7 @@ void makeDecision(void) {
 	if (sides[FAR_LEFT] > STABLE_COUNT) {
 		turnTo(-90.0, TURN_FORWARD_SPEED);
 		reset_far();
-		send_move_data(0.6, 0, 0);
+		send_move_data(NORMAL_SPEED, 0, 0);
 		waitForCorrectValues();
 		cleanOldErrors();
 	}
@@ -220,12 +263,11 @@ void makeDecision(void) {
 	if (sides[FAR_RIGHT] > STABLE_COUNT) {
 		turnTo(90.0, TURN_FORWARD_SPEED);
 		reset_far();
-		send_move_data(0.6, 0, 0);
+		send_move_data(NORMAL_SPEED, 0, 0);
 		waitForCorrectValues();
 		cleanOldErrors();
 	}
 
-	/*
 	// För att gå fram och tillbaka i en korridor
 	if (sides[SHORT_FORWARD] > STABLE_COUNT)
 	{
@@ -233,8 +275,6 @@ void makeDecision(void) {
 		reset_far();
 		cleanOldErrors();
 	}
-	*/
-
 }
 
 ISR(TIMER1_COMPA_vect) {
@@ -307,6 +347,8 @@ int main(void) {
 	pdFlag = false;
 	autoMode = 0;
 
+	reset_far();
+
 	initTimer();
 	sei();
     while(1) {
@@ -321,10 +363,10 @@ int main(void) {
 		if(pdFlag) {
 			volatile Sensor_data sensor_data = getSensorData();
 
-			if (sides[BIT_LEFT] > STABLE_COUNT || sides[BIT_RIGHT] > STABLE_COUNT) {
-				/*pdAlgoritm(sensor_data.br, sensor_data.fr);
-			} else if () {
-				pdAlgoritm(sensor_data.bl, sensor_data.fl);*/
+			if (sides[BIT_LEFT] > STABLE_COUNT/2) {
+				side_pd(sensor_data.br, RIGHT);
+			} else if (sides[BIT_RIGHT] > STABLE_COUNT/2) {
+				side_pd(sensor_data.bl, LEFT);
 			} else {
 				pdAlgoritm(sensor_data.br, sensor_data.bl);
 			}
