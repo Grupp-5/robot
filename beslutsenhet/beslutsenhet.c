@@ -272,6 +272,8 @@ void makeDecision(void) {
 	// För att gå fram och tillbaka i en korridor
 	if (sides[SHORT_FORWARD] > STABLE_COUNT)
 	{
+		// 175 grader för att det ska bli lite fel som den måste reglera upp.
+		// Används ursprungligen mest för test av just reglering
 		turnTo(175.0, 0.0);
 		reset_sides();
 		cleanOldErrors();
