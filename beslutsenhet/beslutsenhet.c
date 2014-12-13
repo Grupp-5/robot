@@ -199,7 +199,7 @@ typedef enum {
 } Side;
 int8_t sides[5] = {0};
 
-void reset_far() {
+void reset_sides() {
 	sides[FAR_LEFT] = 0;
 	sides[FAR_RIGHT] = 0;
 	sides[BIT_LEFT] = 0;
@@ -244,7 +244,7 @@ void makeDecision(void) {
 
 	if (sides[FAR_LEFT] > STABLE_COUNT/2.0 && sides[FAR_RIGHT] > STABLE_COUNT/2.0) {
 		celebrate();
-		reset_far();
+		reset_sides();
 		return;
 	}
 
@@ -254,7 +254,7 @@ void makeDecision(void) {
 
 	if (sides[FAR_LEFT] > STABLE_COUNT) {
 		turnTo(-90.0, TURN_FORWARD_SPEED);
-		reset_far();
+		reset_sides();
 		send_move_data(NORMAL_SPEED, 0, 0);
 		waitForCorrectValues();
 		cleanOldErrors();
@@ -262,7 +262,7 @@ void makeDecision(void) {
 
 	if (sides[FAR_RIGHT] > STABLE_COUNT) {
 		turnTo(90.0, TURN_FORWARD_SPEED);
-		reset_far();
+		reset_sides();
 		send_move_data(NORMAL_SPEED, 0, 0);
 		waitForCorrectValues();
 		cleanOldErrors();
@@ -272,7 +272,7 @@ void makeDecision(void) {
 	if (sides[SHORT_FORWARD] > STABLE_COUNT)
 	{
 		turnTo(175.0, 0.0);
-		reset_far();
+		reset_sides();
 		cleanOldErrors();
 	}
 }
@@ -330,7 +330,7 @@ void interpret_data(Bus_data data){
 			cleanOldErrors();
 
 		}else {
-			reset_far();
+			reset_sides();
 			disableTimers();
 			send_stop = true;
 			pdFlag = false;
@@ -347,7 +347,7 @@ int main(void) {
 	pdFlag = false;
 	autoMode = 0;
 
-	reset_far();
+	reset_sides();
 
 	initTimer();
 	sei();
