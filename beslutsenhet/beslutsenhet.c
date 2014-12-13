@@ -211,6 +211,7 @@ void celebrate() {
 	send_stop = true;
 	pdFlag = false;
 	autoMode = false;
+	// TODO: Skicka en STOP_TIMER!
 	disableTimers();
 }
 
