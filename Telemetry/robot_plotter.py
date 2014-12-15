@@ -87,7 +87,7 @@ def create_reader(plots, con):
         reader(plots, con)
     return _reader
 
-def reader(ALL_PLOTS, con, extra_fun=None):
+def reader(ALL_PLOTS, con, extra_fun=None, on_stop_timer=None):
     counter = 0
     pd_counter = 0
     while True:
@@ -123,6 +123,9 @@ def reader(ALL_PLOTS, con, extra_fun=None):
                 ALL_PLOTS[x][2] = np.append(ALL_PLOTS[x][2], counter)
             print fr, br, fl, f, bl, g, ar
             # print_raw(raw)
+        if raw == COMMANDS['STOP_TIMER']:
+            if on_stop_timer:
+                on_stop_timer()
 
 if __name__ == "__main__":
     win = pg.RemoteGraphicsWindow(title="Telemetri")

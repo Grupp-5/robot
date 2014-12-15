@@ -9,7 +9,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import pyqtSignal, pyqtSlot
 import numpy as np
 import pyqtgraph as pg
-import sys, collections, random
+import sys, collections, random, time
 
 class ConnectThread(QtCore.QThread):
     send_text = pyqtSignal(str)
@@ -35,7 +35,7 @@ class ReaderThread(QtCore.QThread):
         self.send_text.connect(form.receiveCommand)
 
     def run(self):
-        reader(self.form.plot_arrays, self.form.con, self.form.update_stats)
+        reader(self.form.plot_arrays, self.form.con, self.form.update_stats, self.form.stop_timer)
 
 
 class Form(QtGui.QWidget):
@@ -197,9 +197,11 @@ class Form(QtGui.QWidget):
     def update_stats(self, label, value):
         self.labels[label][1].setText(value)
 
+    start_time = None
     auto_started = False
     def send_go_stop(self):
         if not self.auto_started:
+            self.start_time = time.time()
             self.con.write(create_changemode_command(1))
             self.submitCommand(u"Autonomt läge")
             self.auto_started = True
@@ -213,6 +215,13 @@ class Form(QtGui.QWidget):
             self.submitCommand(u"Nytt {}-värde: {}".format(name, val))
             self.con.write(cmd_creater(val))
         return send_new_value
+
+    def stop_timer(self):
+        ttime = time.time() - self.start_time
+        self.submitCommand("Klar! Tid: {} m och {} s".format(
+            int(ttime/60),
+            int(ttime) % 60
+        ))
 
 
 def make_clear_plots(plots):
