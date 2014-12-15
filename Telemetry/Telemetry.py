@@ -51,6 +51,7 @@ _vars = {
     'xrot'    : 0,
     'yrot'    : 0,
     'no_move' : False,
+    'speed'   : 1.7
 }
 
 ALL_PLOTS = create_arrays()
@@ -151,6 +152,8 @@ def command_sender():
         time.sleep(0.05)
         con.write(create_rotation_command(_vars['xrot'], _vars['yrot']))
         time.sleep(0.05)
+        con.write(create_speed_command(_vars['speed']))
+        time.sleep(0.05)
         print _vars['f_speed'], _vars['s_speed'], _vars['r_speed'], _vars['height']
 
 t = thread.start_new_thread(command_sender, ())
@@ -173,6 +176,8 @@ IS_PRESSED = {}
 for key, action in single_actions:
     IS_PRESSED[key] = False
 
+top_pressed = False
+
 while 1:
     pygame.event.pump()
     delta_t = clock.tick(FRAMES_PER_SECOND)
@@ -185,12 +190,30 @@ while 1:
     keys = pygame.key.get_pressed()
 
     if j:
-        _vars['f_speed'] = -j.get_axis(1)
-        _vars['s_speed'] = j.get_axis(0)
-        _vars['yrot'] = -j.get_axis(2)
-        _vars['xrot'] = -j.get_axis(3)
+        if j.get_button(10):
+            _vars['yrot'] = -j.get_axis(2)
+            _vars['xrot'] = -j.get_axis(3)
+        else:
+            _vars['r_speed'] = j.get_axis(2)
 
-        _vars['r_speed'] = (j.get_axis(4)+1)/2 -(j.get_axis(5)+1)/2
+        if j.get_button(9):
+            _vars['height'] = -j.get_axis(1)
+        else:
+            _vars['f_speed'] = -j.get_axis(1)
+            _vars['s_speed'] = j.get_axis(0)
+
+        side, top = j.get_hat(0)
+        if top > 0 and not top_pressed:
+            top_pressed = True
+            _vars['speed'] += 0.1
+        elif top < 0 and not top_pressed:
+            top_pressed = True
+            _vars['speed'] -= 0.1
+        elif top_pressed and top == 0:
+            top_pressed = False
+
+        _vars['speed'] = max(min(_vars['speed'], 4), 0)
+
     else:
         for key, _actions in actions:
             if not keys[key[0]] and not keys[key[1]]:
