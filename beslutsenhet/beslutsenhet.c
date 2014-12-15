@@ -211,7 +211,11 @@ void celebrate() {
 	send_stop = true;
 	pdFlag = false;
 	autoMode = false;
-	// TODO: Skicka en STOP_TIMER!
+	Command_Data data = {
+		.id = STOP_TIMER,
+		.count = command_lengths[STOP_TIMER]+2
+	};
+	send_data(which_device[STOP_TIMER], data.bus_data);
 	disableTimers();
 }
 

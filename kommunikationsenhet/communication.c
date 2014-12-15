@@ -165,11 +165,10 @@ int main(void) {
 		while (!empty(&from_bt_buf))
 		{
 			data = dequeue(&from_bt_buf);
-			// Skicka vidare kommandot om det inte var avsett för komm-enheten
-			if (which_device[data.id] != COMMUNICATION) {
-				send_data(which_device[data.id], data);
-			} else {
-				// Ska kommunikationsenheten aldrig göra nåt?
+			// Skicka vidare kommandot
+			send_data(which_device[data.id], data);
+			if (data.id == STOP_TIMER) {
+				autoMode = false;
 			}
 		}
     }

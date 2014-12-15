@@ -95,4 +95,12 @@ typedef union {
 	Bus_data bus_data;
 } PD_Data;
 
+typedef union {
+	struct {
+		uint8_t count;
+		Data_id id;
+	};
+	Bus_data bus_data;
+} Command_Data;
+
 #endif /* COMMON_H_ */
